@@ -34,10 +34,11 @@ PIN_MAP: dict[str, int] = {
     "left_ind":      25,   # pin 22
     "right_ind":     12,   # pin 32
     "brake":         16,   # pin 36  (tail lamp)
+    "reverse":       21,   # pin 40  (reverse/forward: on ~5 s, then auto-off)
     # SOFTWARE-ONLY signals (no GPIO pin of their own):
     #   hazard    -> blinks left_ind + right_ind together
     #   all_lamp  -> forces headlight + brake on and blinks both indicators
-    # UI-only until wired: reverse, parking_brake
+    # UI-only until wired: parking_brake
     # Relay-board GND: use an even-row ground pin (6, 14, 20, 30 or 34).
     # Skipped even pins: 2/4 (5V), 6/14/20/30/34 (GND), 8/10 (UART),
     # 24/26 (SPI CE), 28 (HAT ID EEPROM).

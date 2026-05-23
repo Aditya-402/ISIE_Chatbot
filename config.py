@@ -123,6 +123,9 @@ HORN_BEEP_ON_S  = 2.0   # each beep duration (seconds)
 HORN_BEEP_GAP_S = 3.0   # gap between beeps (seconds)
 HORN_BEEP_COUNT = 2     # number of beeps
 
+# Reverse/forward: keying it on drives the pin for this long, then auto-off.
+REVERSE_PULSE_S = 5.0
+
 # Mode registry order (left-to-right on the BOT toggle strip).
 MODE_ORDER       = ("switching", "conversational")
 DEFAULT_MODE     = "switching"

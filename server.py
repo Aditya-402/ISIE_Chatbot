@@ -113,8 +113,35 @@ hub = Hub()
 
 # Driven physical outputs that the ignition gate switches off (ignition itself
 # is handled separately so it can stay lit as the gate).
-_PIN_CHANNELS = ("headlight", "horn", "left_ind", "right_ind", "brake")
+_PIN_CHANNELS = ("headlight", "horn", "left_ind", "right_ind", "brake", "reverse")
 _INDICATORS = ("left_ind", "right_ind")
+
+# Auto-off timers for timed-pulse channels (reverse/forward).
+_timers: dict[str, "threading.Timer"] = {}
+
+
+def _start_timed_pulse(ch: str, seconds: float):
+    """Drive `ch` ON now, then auto-OFF after `seconds`. Re-keying restarts the
+    timer. Used for reverse/forward. Updates UI (vstate + broadcast) at both
+    edges so the tell-tale lights for the duration."""
+    old = _timers.pop(ch, None)
+    if old:
+        old.cancel()
+
+    vstate.apply(ch, True)
+    _apply_outputs()
+    hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+
+    def _expire():
+        _timers.pop(ch, None)
+        vstate.apply(ch, False)
+        _apply_outputs()
+        hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+
+    t = threading.Timer(seconds, _expire)
+    t.daemon = True
+    _timers[ch] = t
+    t.start()
 
 
 def _horn_steps() -> list[tuple[bool, float]]:
@@ -138,10 +165,14 @@ def drive(ch: str, action: str) -> dict:
         new = not vstate.state["ignition"]
         vstate.apply("ignition", new)
         if not new:
-            # Killing ignition clears every other intent (modes included).
+            # Killing ignition clears every other intent (modes included) and
+            # cancels any pending timed pulses.
             for other in config.CONTROL_CHANNELS:
                 if other != "ignition":
                     vstate.apply(other, False)
+            for t in _timers.values():
+                t.cancel()
+            _timers.clear()
         _apply_outputs()
         hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
         return {"channel": ch, "on": new, **vstate.snapshot()}
@@ -157,6 +188,12 @@ def drive(ch: str, action: str) -> dict:
         vstate.apply("horn", False)
         hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
         return {"channel": ch, "on": False, **vstate.snapshot()}
+
+    # Reverse/forward: keying it on drives the pin for a fixed time, then auto-off.
+    if ch == "reverse":
+        if action in ("press", "toggle"):
+            _start_timed_pulse("reverse", config.REVERSE_PULSE_S)
+        return {"channel": ch, "on": vstate.state["reverse"], **vstate.snapshot()}
 
     if action == "toggle":
         new = not vstate.state[ch]
@@ -206,6 +243,8 @@ def _apply_outputs():
     # Standalone lamps. All-lamp mode forces head + tail (brake) lamps on.
     hardware.set("headlight", on["headlight"] or all_lamp)
     hardware.set("brake",     on["brake"]     or all_lamp)
+    # Reverse/forward: driven by its intent, which the 5 s timer manages.
+    hardware.set("reverse",   on["reverse"])
 
     # Indicators: blink together under hazard OR all-lamp; else steady toggle.
     if on["hazard"] or all_lamp:

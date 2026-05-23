@@ -171,8 +171,9 @@ PIN_MAP = {            # logical channel -> BCM GPIO pin
     "left_ind":      25,   # pin 22
     "right_ind":     12,   # pin 32
     "brake":         16,   # pin 36  (tail lamp)
-    # hazard + all_lamp are SOFTWARE signals (no pin); reverse + parking_brake
-    # are UI-only until you add them here.
+    "reverse":       21,   # pin 40  (reverse/forward: on ~5 s, then auto-off)
+    # hazard + all_lamp are SOFTWARE signals (no pin); parking_brake is
+    # UI-only until you add it here.
 }
 ACTIVE_HIGH = {}       # list a channel here ONLY if its relay switches ON on HIGH
 ```
@@ -185,9 +186,10 @@ ACTIVE_HIGH = {}       # list a channel here ONLY if its relay switches ON on HI
 | left_ind | 25 | 22 | standalone (blinks in hazard/all-lamp) |
 | right_ind | 12 | 32 | standalone (blinks in hazard/all-lamp) |
 | brake | 16 | 36 | standalone / tail lamp |
+| reverse | 21 | 40 | timed — keys on for 5 s, then auto-off |
 | hazard | — | — | **software** mode (blinks both indicators) |
 | all_lamp | — | — | **software** mode (head+tail on, indicators blink) |
-| reverse, parking_brake | — | — | UI-only, unwired |
+| parking_brake | — | — | UI-only, unwired |
 
 GND for the relay board: any even-row ground pin — **6, 14, 20, 30, or 34**.
 Even pins skipped: 2/4 (5V), the GNDs above, 8/10 (UART), 24/26 (SPI CE),
@@ -236,7 +238,7 @@ Ten logical channels drive GPIO via `hardware.py`:
 | right_ind     | Toggle (steady). Same.                                     |
 | horn          | Click → fixed beep pattern (2 s on, 3 s gap, 2 s on, off). Tunable in config.py. |
 | brake         | Momentary — active while pressed (tail lamp).             |
-| reverse       | Toggle (UI-only until wired).                              |
+| reverse       | Key on → drives pin for 5 s, then auto-off (`REVERSE_PULSE_S`). |
 | parking_brake | Toggle (UI-only). Lights the red P tell-tale (shares the brake tell-tale). |
 
 Turning ignition OFF cancels all active states and stops every blink/beep loop.

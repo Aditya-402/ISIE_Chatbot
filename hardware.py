@@ -27,17 +27,20 @@ import config
 # Active-low vs active-high also TBD; flip ACTIVE_HIGH per channel if mixed.
 
 PIN_MAP: dict[str, int] = {
-    # channel        BCM   (physical pin on the 40-pin header)
-    "ignition":      27,   # pin 13  (hardware signal AND master gate)
-    "headlight":     17,   # pin 11
-    "horn":          22,   # pin 15
-    "left_ind":       5,   # pin 29
-    "right_ind":      6,   # pin 31
-    "brake":         13,   # pin 33  (tail lamp)
+    # channel        BCM   (physical pin — OUTER row, even-numbered pins only)
+    "ignition":      18,   # pin 12  (hardware signal AND master gate)
+    "headlight":     23,   # pin 16
+    "horn":          24,   # pin 18
+    "left_ind":      25,   # pin 22
+    "right_ind":     12,   # pin 32
+    "brake":         16,   # pin 36  (tail lamp)
     # SOFTWARE-ONLY signals (no GPIO pin of their own):
     #   hazard    -> blinks left_ind + right_ind together
     #   all_lamp  -> forces headlight + brake on and blinks both indicators
     # UI-only until wired: reverse, parking_brake
+    # Relay-board GND: use an even-row ground pin (6, 14, 20, 30 or 34).
+    # Skipped even pins: 2/4 (5V), 6/14/20/30/34 (GND), 8/10 (UART),
+    # 24/26 (SPI CE), 28 (HAT ID EEPROM).
 }
 
 # Active-LOW is the default (most relay boards switch ON when the pin goes

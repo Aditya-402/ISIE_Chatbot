@@ -160,35 +160,40 @@ Logical channel names are mapped to BCM pins in two dicts at the top of
 `hardware.py`. The UI/server never reference pin numbers, so wiring changes
 touch only this file.
 
+All signals use the **outer (even-numbered) row** of the 40-pin header:
+
 ```python
 PIN_MAP = {            # logical channel -> BCM GPIO pin
-    "ignition":      27,   # pin 13  (hardware signal AND master gate)
-    "headlight":     17,   # pin 11
-    "horn":          22,   # pin 15
-    "left_ind":       5,   # pin 29
-    "right_ind":      6,   # pin 31
-    "brake":         13,   # pin 33  (tail lamp)
+    "ignition":      18,   # pin 12  (hardware signal AND master gate)
+    "headlight":     23,   # pin 16
+    "horn":          24,   # pin 18
+    "left_ind":      25,   # pin 22
+    "right_ind":     12,   # pin 32
+    "brake":         16,   # pin 36  (tail lamp)
     # hazard + all_lamp are SOFTWARE signals (no pin); reverse + parking_brake
     # are UI-only until you add them here.
 }
 ACTIVE_HIGH = {}       # list a channel here ONLY if its relay switches ON on HIGH
 ```
 
-| Signal | BCM | Pin | Type |
-|--------|-----|-----|------|
-| ignition | 27 | 13 | hardware **and** master gate |
-| headlight | 17 | 11 | standalone |
-| horn | 22 | 15 | standalone — click fires a beep pattern |
-| left_ind | 5 | 29 | standalone (blinks in hazard/all-lamp) |
-| right_ind | 6 | 31 | standalone (blinks in hazard/all-lamp) |
-| brake | 13 | 33 | standalone / tail lamp |
+| Signal | BCM | Pin (even row) | Type |
+|--------|-----|----------------|------|
+| ignition | 18 | 12 | hardware **and** master gate |
+| headlight | 23 | 16 | standalone |
+| horn | 24 | 18 | standalone — click fires a beep pattern |
+| left_ind | 25 | 22 | standalone (blinks in hazard/all-lamp) |
+| right_ind | 12 | 32 | standalone (blinks in hazard/all-lamp) |
+| brake | 16 | 36 | standalone / tail lamp |
 | hazard | — | — | **software** mode (blinks both indicators) |
 | all_lamp | — | — | **software** mode (head+tail on, indicators blink) |
 | reverse, parking_brake | — | — | UI-only, unwired |
 
+GND for the relay board: any even-row ground pin — **6, 14, 20, 30, or 34**.
+Even pins skipped: 2/4 (5V), the GNDs above, 8/10 (UART), 24/26 (SPI CE),
+28 (HAT ID EEPROM).
+
 Rules:
-- Values are **BCM** numbers (`GPIO.setmode(GPIO.BCM)`). Avoid 2/3 (I²C) and
-  14/15 (UART) if you use those buses.
+- Values are **BCM** numbers (`GPIO.setmode(GPIO.BCM)`).
 - **ignition** drives a pin *and* gates everything: while it's off, all other
   outputs are forced off.
 - **hazard** and **all_lamp** are software modes — they have no pins of their
@@ -197,8 +202,8 @@ Rules:
   goes LOW, so leave them out of `ACTIVE_HIGH`. Add `"name": True` only for
   active-high channels. On boot every mapped pin is initialised to its OFF
   level per polarity, so active-high relays don't fire at startup.
-- Wire each load's relay input to its BCM pin and a common **GND** (e.g.
-  physical pin 9, 14, 25, 34, or 39) to the relay board.
+- Wire each load's relay input to its BCM pin and a common **GND** from the
+  same even row (pin 6, 14, 20, 30, or 34) to the relay board.
 - Indicator blink is software-driven on a **3 s cycle**
   (`config.INDICATOR_BLINK_PERIOD_S`) — no hardware flasher needed.
 

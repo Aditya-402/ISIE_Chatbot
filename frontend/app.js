@@ -49,10 +49,6 @@ const state = {
   },
 };
 
-// Apply persisted font prefs ASAP so there's no flash of default styling.
-loadDisplay();
-applyDisplay();
-
 const TAB_TITLES = {
   dashboard: 'IOT ELECTRIC VEHICLE DASHBOARD',
   bot:       'VEHICLE VOICE CONTROL & CHAT BOT',
@@ -110,27 +106,35 @@ function applyState(snap) {
     }
   }
 
+  // Effective output mirrors server _apply_outputs(): all-lamp mode forces
+  // head + tail lamps on and makes both indicators blink; hazard blinks both.
+  const allLamp   = !!state.channels.all_lamp;
+  const modeBlink = !!state.channels.hazard || allLamp;
+
   // SVG icon lit-states.
-  setIcon('headlight');
   setIcon('reverse');
   setIcon('hazard');
   setIcon('all_lamp');
   setIcon('parking_brake');
 
-  // Brake tell-tale: lit whenever brake OR parking_brake is on.
-  const brakeOn = !!state.channels.brake || !!state.channels.parking_brake;
+  // Headlight tell-tale: its own toggle, or forced on by all-lamp mode.
+  const hl = $('#iconHeadlight');
+  if (hl) hl.classList.toggle('on', !!state.channels.headlight || allLamp);
+
+  // Brake / tail-lamp tell-tale: brake, parking brake, or all-lamp mode.
+  const brakeOn = !!state.channels.brake || !!state.channels.parking_brake || allLamp;
   const brakeEl = $('#iconBrake');
   if (brakeEl) brakeEl.classList.toggle('on', brakeOn);
 
-  // Indicator arrows: blink if hazard, or on if individually on.
+  // Indicators: blink together under hazard/all-lamp; else steady individual.
   const left  = $('#iconLeft');
   const right = $('#iconRight');
-  left.classList.toggle('blink',   !!state.channels.left_ind  && !state.channels.hazard);
-  right.classList.toggle('blink',  !!state.channels.right_ind && !state.channels.hazard);
-  left.classList.toggle('hazard',  !!state.channels.hazard);
-  right.classList.toggle('hazard', !!state.channels.hazard);
-  left.classList.remove('on');
-  right.classList.remove('on');
+  left.classList.toggle('hazard',  modeBlink);
+  right.classList.toggle('hazard', modeBlink);
+  left.classList.toggle('on',  !modeBlink && !!state.channels.left_ind);
+  right.classList.toggle('on', !modeBlink && !!state.channels.right_ind);
+  left.classList.remove('blink');
+  right.classList.remove('blink');
 }
 
 function setIcon(ch) {
@@ -695,6 +699,11 @@ function renderFontOptions() {
 
 // Initial render with defaults so the Config tab isn't empty before the
 // server config arrives.
+// Font prefs are defined further up as consts, so apply them here (after
+// their declarations) — calling applyDisplay() earlier would hit the
+// temporal dead zone on FONT_SIZES/FONT_FAMILIES and abort init.
+loadDisplay();
+applyDisplay();
 renderVoiceOptions('stt');
 renderVoiceOptions('tts');
 renderFontOptions();

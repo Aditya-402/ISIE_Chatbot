@@ -102,87 +102,119 @@ hub = Hub()
 
 
 # --- Control orchestration ---------------------------------------------
-# Maps incoming actions to hardware.py + state mutations + WS broadcasts.
+# Two kinds of channels:
+#   * physical GPIO outputs : ignition, headlight, horn, left_ind, right_ind, brake
+#   * software-only signals : hazard, all_lamp
+# ignition is special — it's a real output AND the master gate: every other
+# output is forced off while it's off.
+# Each action updates the *intent* in vstate, then _apply_outputs() derives the
+# effective pin states (software modes can override individual intents) and
+# drives hardware. Keeping the mode logic in one place avoids ordering bugs.
 
-_blink_channels = {"left_ind", "right_ind"}
+# Driven physical outputs that the ignition gate switches off (ignition itself
+# is handled separately so it can stay lit as the gate).
+_PIN_CHANNELS = ("headlight", "horn", "left_ind", "right_ind", "brake")
+_INDICATORS = ("left_ind", "right_ind")
+
+
+def _horn_steps() -> list[tuple[bool, float]]:
+    """Beep pattern: ON/GAP repeated HORN_BEEP_COUNT times (gap between only).
+    pulse_sequence() leaves the channel OFF at the end."""
+    steps: list[tuple[bool, float]] = []
+    for i in range(config.HORN_BEEP_COUNT):
+        steps.append((True, config.HORN_BEEP_ON_S))
+        if i < config.HORN_BEEP_COUNT - 1:
+            steps.append((False, config.HORN_BEEP_GAP_S))
+    return steps
 
 
 def drive(ch: str, action: str) -> dict:
-    """Apply a control action and broadcast the resulting state.
-    Returns the channel's new value.
-    """
+    """Apply a control action, recompute outputs, broadcast state."""
     if ch not in config.CONTROL_CHANNELS:
         raise HTTPException(404, f"unknown channel '{ch}'")
 
+    # Ignition is the master GATE — it has no GPIO pin of its own.
     if ch == "ignition" and action in ("toggle", "press"):
         new = not vstate.state["ignition"]
         vstate.apply("ignition", new)
-        hardware.set("ignition", new)
         if not new:
+            # Killing ignition clears every other intent (modes included).
             for other in config.CONTROL_CHANNELS:
-                if other == "ignition":
-                    continue
-                if vstate.state[other]:
+                if other != "ignition":
                     vstate.apply(other, False)
-                    hardware.set(other, False)
-                hardware.stop_blink(other)
+        _apply_outputs()
         hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
         return {"channel": ch, "on": new, **vstate.snapshot()}
 
     if not vstate.state["ignition"]:
-        # Ignition gate: ignore other channels until ignition is on.
+        # Ignition gate: ignore everything else until ignition is on.
         return {"channel": ch, "on": False, "ignored": True, **vstate.snapshot()}
+
+    # Horn: a click fires a fixed beep pattern then auto-offs (not a latch).
+    if ch == "horn":
+        if action in ("press", "toggle"):
+            hardware.pulse_sequence("horn", _horn_steps())
+        vstate.apply("horn", False)
+        hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+        return {"channel": ch, "on": False, **vstate.snapshot()}
 
     if action == "toggle":
         new = not vstate.state[ch]
         vstate.apply(ch, new)
-        _apply_toggle(ch, new)
-    elif action == "set":
-        # Reserved for direct set; expects ?value=true/false in querystring.
-        raise HTTPException(400, "use POST body with action=set and value")
+        # L/R turn signals are mutually exclusive when toggled directly.
+        if ch in _INDICATORS and new:
+            other = "right_ind" if ch == "left_ind" else "left_ind"
+            vstate.apply(other, False)
     elif action == "press":
         vstate.apply(ch, True)
-        hardware.pulse_on(ch)
     elif action == "release":
         vstate.apply(ch, False)
-        hardware.pulse_off(ch)
+    elif action == "set":
+        raise HTTPException(400, "use POST body with action=set and value")
     else:
         raise HTTPException(400, f"unknown action '{action}'")
 
+    _apply_outputs()
     hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
     return {"channel": ch, "on": vstate.state[ch], **vstate.snapshot()}
 
 
-def _apply_toggle(ch: str, new: bool):
-    """Toggle logic, including indicator interlocks and hazard."""
-    # L/R mutual exclusion (turning one on cancels the other).
-    if ch in _blink_channels and new:
-        other = "right_ind" if ch == "left_ind" else "left_ind"
-        if vstate.state[other]:
-            vstate.apply(other, False)
-            hardware.stop_blink(other)
+def _apply_outputs():
+    """Derive effective GPIO outputs from intent + software modes (lab spec):
 
-    if ch == "hazard":
-        if new:
-            hardware.blink("left_ind")
-            hardware.blink("right_ind")
-        else:
-            hardware.stop_blink("left_ind")
-            hardware.stop_blink("right_ind")
-            # Restore any individual indicator that was on.
-            if vstate.state["left_ind"]:
-                hardware.blink("left_ind")
-            if vstate.state["right_ind"]:
-                hardware.blink("right_ind")
-    elif ch in _blink_channels:
-        if vstate.state["hazard"]:
-            pass   # hazard already drives both; intent recorded only
-        elif new:
-            hardware.blink(ch)
-        else:
-            hardware.stop_blink(ch)
+      * ignition OFF -> everything off (master gate).
+      * headlight / brake -> standalone, driven by their own intent.
+      * horn -> not steady here; a click fires a beep pattern (see drive()).
+      * all_lamp mode -> forces head lamp + tail lamp (brake) ON, and both
+        indicators blink together.
+      * hazard mode  -> both indicators blink together.
+      * otherwise    -> left/right indicators are independent steady toggles.
+      * indicator blink cadence = config.INDICATOR_BLINK_PERIOD_S (3 s cycle).
+    """
+    on = vstate.state
+
+    # Ignition is both a real output AND the master gate.
+    hardware.set("ignition", on["ignition"])
+    if not on["ignition"]:
+        for c in _PIN_CHANNELS:
+            hardware.stop_blink(c)
+            hardware.set(c, False)
+        return
+
+    all_lamp = on["all_lamp"]
+
+    # Standalone lamps. All-lamp mode forces head + tail (brake) lamps on.
+    hardware.set("headlight", on["headlight"] or all_lamp)
+    hardware.set("brake",     on["brake"]     or all_lamp)
+
+    # Indicators: blink together under hazard OR all-lamp; else steady toggle.
+    if on["hazard"] or all_lamp:
+        hardware.blink("left_ind")
+        hardware.blink("right_ind")
     else:
-        hardware.set(ch, new)
+        for ind in _INDICATORS:
+            hardware.stop_blink(ind)
+            hardware.set(ind, on[ind])
 
 
 # --- Lifespan: warm up RAG + voice on startup --------------------------

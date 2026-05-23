@@ -113,9 +113,15 @@ COLOUR_ICON_ON     = "#ffffff"   # lit icon
 COLOUR_HAZARD      = "#e63946"   # hazard / warning red
 COLOUR_PANEL_FG    = "#ffffff"
 
-# Indicator blink rate (Hz). Software blink for v1; hardware-flasher option
-# can be added later behind hardware.py.
-INDICATOR_BLINK_HZ = 1.5
+# Indicator blink cadence: seconds for a full ON+OFF cycle. Used by hazard
+# and all-lamp mode. 3.0 => 1.5 s on, 1.5 s off.
+INDICATOR_BLINK_PERIOD_S = 3.0
+
+# Horn: a single click fires a fixed beep pattern, then auto-off (not a latch).
+# Default: beep twice (2 s each) with a 3 s gap between, then off.
+HORN_BEEP_ON_S  = 2.0   # each beep duration (seconds)
+HORN_BEEP_GAP_S = 3.0   # gap between beeps (seconds)
+HORN_BEEP_COUNT = 2     # number of beeps
 
 # Mode registry order (left-to-right on the BOT toggle strip).
 MODE_ORDER       = ("switching", "conversational")

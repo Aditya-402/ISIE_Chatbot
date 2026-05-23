@@ -28,17 +28,16 @@ import config
 
 PIN_MAP: dict[str, int] = {
     # channel        BCM   (physical pin on the 40-pin header)
+    "ignition":      27,   # pin 13  (hardware signal AND master gate)
     "headlight":     17,   # pin 11
-    "ignition":      27,   # pin 13
     "horn":          22,   # pin 15
     "left_ind":       5,   # pin 29
     "right_ind":      6,   # pin 31
-    "brake":         13,   # pin 33
-    # --- not wired yet (UI works, drives no pin until added here) ---
-    # "all_lamp":     10,
-    # "reverse":       9,
-    # "hazard":       11,
-    # "parking_brake":19,
+    "brake":         13,   # pin 33  (tail lamp)
+    # SOFTWARE-ONLY signals (no GPIO pin of their own):
+    #   hazard    -> blinks left_ind + right_ind together
+    #   all_lamp  -> forces headlight + brake on and blinks both indicators
+    # UI-only until wired: reverse, parking_brake
 }
 
 # Active-LOW is the default (most relay boards switch ON when the pin goes
@@ -129,29 +128,32 @@ def state(channel: str) -> bool:
     return _pin_state.get(channel, False)
 
 
-def blink(channel: str, hz: float = None) -> None:
-    """Start a software blinker on the given channel at `hz` Hz.
+def blink(channel: str, period_s: float = None) -> None:
+    """Start a software blinker on the given channel.
 
+    `period_s` is the full ON+OFF cycle in seconds (default from config);
+    the lamp is on for half of it and off for the other half.
     Idempotent: calling on an already-blinking channel is a no-op.
     """
-    hz = hz or config.INDICATOR_BLINK_HZ
+    period_s = period_s or config.INDICATOR_BLINK_PERIOD_S
     with _lock:
         if channel in _blink_threads:
             return
         stop = threading.Event()
         _blink_threads[channel] = stop
 
+    half = max(period_s, 0.2) / 2.0   # on-duration = off-duration
+
     def _loop():
-        period = 0.5 / max(hz, 0.1)   # half-period = on or off duration
         on = True
         while not stop.is_set():
             set(channel, on)
             on = not on
-            stop.wait(period)
+            stop.wait(half)
         set(channel, False)
 
     threading.Thread(target=_loop, daemon=True, name=f"blink-{channel}").start()
-    _log(f"{channel:<10s} blink start ({hz} Hz)")
+    _log(f"{channel:<10s} blink start ({period_s}s cycle)")
 
 
 def stop_blink(channel: str) -> None:
@@ -160,6 +162,32 @@ def stop_blink(channel: str) -> None:
     if stop:
         stop.set()
         _log(f"{channel:<10s} blink stop")
+
+
+def pulse_sequence(channel: str, steps: list[tuple[bool, float]]) -> None:
+    """Run a one-shot ON/OFF pattern in a worker thread, then leave the
+    channel OFF. `steps` is a list of (on, seconds). Re-triggering cancels the
+    previous run; registered in _blink_threads so stop_blink() (and the
+    ignition gate) cancels it too. Used for the horn beep pattern.
+    """
+    stop_blink(channel)              # cancel any running blink/sequence
+    stop = threading.Event()
+    with _lock:
+        _blink_threads[channel] = stop
+
+    def _run():
+        for on, secs in steps:
+            if stop.is_set():
+                break
+            set(channel, on)
+            stop.wait(max(secs, 0.0))
+        set(channel, False)
+        with _lock:
+            if _blink_threads.get(channel) is stop:
+                _blink_threads.pop(channel, None)
+
+    threading.Thread(target=_run, daemon=True, name=f"seq-{channel}").start()
+    _log(f"{channel:<10s} sequence start ({len(steps)} steps)")
 
 
 def shutdown() -> None:

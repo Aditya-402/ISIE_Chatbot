@@ -142,7 +142,8 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
   0%, 49%   { fill: #fff; filter: drop-shadow(0 0 10px rgba(255,255,255,0.85)); }
   50%, 100% { fill: #2f4a7e; filter: none; }
 }
-.indicator.hazard path { animation: blinkHazard 0.66s steps(2, end) infinite; }
+/* hazard + all-lamp mode: both arrows blink together on a 3 s cycle */
+.indicator.hazard path { animation: blinkHazard 3s steps(2, end) infinite; }
 @keyframes blinkHazard {
   0%, 49%   { fill: var(--warn); filter: drop-shadow(0 0 10px rgba(255,194,76,0.85)); }
   50%, 100% { fill: #2f4a7e; filter: none; }

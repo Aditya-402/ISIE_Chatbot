@@ -162,30 +162,45 @@ touch only this file.
 
 ```python
 PIN_MAP = {            # logical channel -> BCM GPIO pin
+    "ignition":      27,   # pin 13  (hardware signal AND master gate)
     "headlight":     17,   # pin 11
-    "ignition":      27,   # pin 13
     "horn":          22,   # pin 15
     "left_ind":       5,   # pin 29
     "right_ind":      6,   # pin 31
-    "brake":         13,   # pin 33
-    # all_lamp / reverse / hazard / parking_brake: UI-only until added here
+    "brake":         13,   # pin 33  (tail lamp)
+    # hazard + all_lamp are SOFTWARE signals (no pin); reverse + parking_brake
+    # are UI-only until you add them here.
 }
 ACTIVE_HIGH = {}       # list a channel here ONLY if its relay switches ON on HIGH
 ```
 
+| Signal | BCM | Pin | Type |
+|--------|-----|-----|------|
+| ignition | 27 | 13 | hardware **and** master gate |
+| headlight | 17 | 11 | standalone |
+| horn | 22 | 15 | standalone — click fires a beep pattern |
+| left_ind | 5 | 29 | standalone (blinks in hazard/all-lamp) |
+| right_ind | 6 | 31 | standalone (blinks in hazard/all-lamp) |
+| brake | 13 | 33 | standalone / tail lamp |
+| hazard | — | — | **software** mode (blinks both indicators) |
+| all_lamp | — | — | **software** mode (head+tail on, indicators blink) |
+| reverse, parking_brake | — | — | UI-only, unwired |
+
 Rules:
-- **Six channels are wired** in this build; the other four work in the UI but
-  drive no pin until you add them to `PIN_MAP`.
 - Values are **BCM** numbers (`GPIO.setmode(GPIO.BCM)`). Avoid 2/3 (I²C) and
   14/15 (UART) if you use those buses.
+- **ignition** drives a pin *and* gates everything: while it's off, all other
+  outputs are forced off.
+- **hazard** and **all_lamp** are software modes — they have no pins of their
+  own; they drive the indicator/lamp pins above.
 - **Active-low is the default** — most relay boards switch ON when the pin
   goes LOW, so leave them out of `ACTIVE_HIGH`. Add `"name": True` only for
   active-high channels. On boot every mapped pin is initialised to its OFF
   level per polarity, so active-high relays don't fire at startup.
 - Wire each load's relay input to its BCM pin and a common **GND** (e.g.
   physical pin 9, 14, 25, 34, or 39) to the relay board.
-- Indicator blink (1.5 Hz) is software-driven, so wiring `left_ind`/`right_ind`
-  to relays is enough — no hardware flasher needed.
+- Indicator blink is software-driven on a **3 s cycle**
+  (`config.INDICATOR_BLINK_PERIOD_S`) — no hardware flasher needed.
 
 `hardware.py` runs in SIM mode on Windows (state changes just log to stdout)
 and REAL mode on Linux (drives GPIO via rpi-lgpio).
@@ -207,18 +222,18 @@ Ten logical channels drive GPIO via `hardware.py`:
 
 | Channel       | Behaviour                                                  |
 |---------------|------------------------------------------------------------|
-| ignition      | Latched master. Greys out every other button when OFF. Title bar flips green when ON. |
+| ignition      | Latched master gate (also a GPIO output). Greys out every other button when OFF. Title bar flips green when ON. |
 | headlight     | Toggle                                                     |
-| all_lamp      | Toggle                                                     |
-| reverse       | Toggle                                                     |
-| hazard        | Toggle. Blinks both indicator outputs.                     |
-| left_ind      | Toggle. Blinks at 1.5 Hz. Mutually exclusive with right_ind. |
-| right_ind     | Toggle. Same.                                              |
-| horn          | Momentary — active while pressed.                          |
-| brake         | Momentary — active while pressed.                          |
-| parking_brake | Toggle. Lights the red P tell-tale (shares the brake tell-tale). |
+| all_lamp      | Software mode. Forces head lamp + tail lamp (brake) ON and blinks both indicators together on a 3 s cycle. |
+| hazard        | Software mode. Blinks both indicators together on a 3 s cycle. |
+| left_ind      | Toggle (steady). Mutually exclusive with right_ind. Blinks only under hazard / all-lamp. |
+| right_ind     | Toggle (steady). Same.                                     |
+| horn          | Click → fixed beep pattern (2 s on, 3 s gap, 2 s on, off). Tunable in config.py. |
+| brake         | Momentary — active while pressed (tail lamp).             |
+| reverse       | Toggle (UI-only until wired).                              |
+| parking_brake | Toggle (UI-only). Lights the red P tell-tale (shares the brake tell-tale). |
 
-Turning ignition OFF cancels all active states and stops every blink loop.
+Turning ignition OFF cancels all active states and stops every blink/beep loop.
 
 ### Config tab
 
@@ -297,7 +312,8 @@ Everything tunable lives in **`config.py`**:
 - `MAX_ANSWER_WORDS`, `NUM_PREDICT`, `TEMPERATURE` — generation knobs
 - `DEFAULT_STT`, `DEFAULT_TTS` — backend selection (TTS is Pi-aware by default)
 - `SERVER_HOST`, `SERVER_PORT` — bind address (use `0.0.0.0` for LAN access)
-- `INDICATOR_BLINK_HZ` — blink rate for turn signals / hazard
+- `INDICATOR_BLINK_PERIOD_S` — indicator blink cadence (3 s cycle) for hazard / all-lamp
+- `HORN_BEEP_ON_S`, `HORN_BEEP_GAP_S`, `HORN_BEEP_COUNT` — horn beep pattern
 - `CONTROL_CHANNELS` — logical channel registry (mirrored by `hardware.py`)
 
 Font size/style are **not** in config.py — they're per-device browser

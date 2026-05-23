@@ -1,0 +1,31 @@
+# --- core RAG runtime (required) -----------------------------------------
+faiss-cpu>=1.7.4
+numpy>=1.24,<2
+sentence-transformers>=2.6.0
+rank_bm25>=0.2.2
+ollama>=0.3.0
+
+# --- voice: offline STT (required for Vosk radio button) -----------------
+vosk>=0.3.45
+
+# --- voice: online STT (required for Google radio button) ----------------
+SpeechRecognition>=3.10.0
+
+# --- voice: offline TTS (required for pyttsx3 radio button) --------------
+# On Windows: works out of the box (SAPI5)
+# On Linux/Pi: needs `sudo apt install espeak-ng` first
+pyttsx3>=2.90
+
+# --- voice: online TTS (required for gTTS radio button) ------------------
+gTTS>=2.5.0
+pygame>=2.5.0
+
+# --- microphone capture (Tkinter chatbot fallback only - browser handles --
+# mic in the web app, so this is optional on the Pi).
+# On Linux/Pi: needs `sudo apt install portaudio19-dev libportaudio2` first
+sounddevice>=0.4.6
+
+# --- web stack (server.py + frontend/) -----------------------------------
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9

@@ -1,0 +1,21 @@
+# =============================================================
+#  Raspberry Pi 5 — GPIO control dependency (Pi ONLY)
+# =============================================================
+# Install on the Pi AFTER the main requirements.txt:
+#
+#     pip3 install -r requirements.txt
+#     pip3 install -r requirements-pi.txt
+#
+# Why a separate file: this package is Linux/Pi-only and must NOT be
+# installed on the Windows dev machine (it would break `pip install`).
+#
+# Why rpi-lgpio (not RPi.GPIO): the classic RPi.GPIO library does not work
+# on the Raspberry Pi 5's RP1 I/O controller. rpi-lgpio is a drop-in
+# replacement that exposes the SAME `import RPi.GPIO as GPIO` API on top of
+# the lgpio kernel interface, so hardware.py needs no code change.
+#
+# IMPORTANT: do NOT install the classic `RPi.GPIO` alongside this — the two
+# provide the same module name and will conflict. If RPi.GPIO is already
+# present:  pip3 uninstall -y RPi.GPIO  before installing this.
+
+rpi-lgpio>=0.6

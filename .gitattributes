@@ -1,0 +1,16 @@
+# Normalize line endings so the Pi gets working shell scripts regardless of
+# the cloner's core.autocrlf setting.
+
+* text=auto eol=lf
+
+# Shell scripts MUST be LF (CRLF breaks the #! interpreter line on Linux).
+*.sh text eol=lf
+
+# Windows batch file stays CRLF.
+*.bat text eol=crlf
+
+# Binary assets — never touch line endings.
+*.pkl        binary
+*.index      binary
+*.safetensors binary
+*.mdl        binary

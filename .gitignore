@@ -1,0 +1,22 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# --- Logs / runtime ---
+*.log
+
+# --- Models: downloaded by setup_pi.sh, NOT committed --------------------
+# The embedder (~128 MB) exceeds GitHub's 100 MB per-file limit, and the
+# Vosk STT model is large too. Both are fetched on first setup. The small,
+# corpus-specific rag_data/ indices ARE committed (not downloadable).
+models/
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

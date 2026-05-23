@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>IOT Electric Vehicle Dashboard</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="ignition-off">
+
+<header class="title-bar" id="titleBar">
+  <div class="title-text" id="titleText">IOT ELECTRIC VEHICLE DASHBOARD</div>
+  <div class="title-meta">
+    <span class="status-pill" id="statusPill">loading engine…</span>
+    <span class="clock" id="clock">--:--</span>
+  </div>
+</header>
+
+<nav class="tab-bar" role="tablist">
+  <button class="tab active" data-tab="dashboard" role="tab" aria-selected="true">DASHBOARD</button>
+  <button class="tab"        data-tab="bot"       role="tab" aria-selected="false">BOT</button>
+  <button class="tab"        data-tab="config"    role="tab" aria-selected="false">CONFIG</button>
+</nav>
+
+<main class="stage">
+
+  <!-- ============================ DASHBOARD VIEW ============================ -->
+  <section class="view view-dashboard active" id="viewDashboard">
+
+    <div class="cluster">
+      <svg class="cluster-svg" viewBox="0 0 800 280" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="panelGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#162a55"/>
+            <stop offset="1" stop-color="#0a1738"/>
+          </linearGradient>
+          <linearGradient id="laneFade" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#7ec8ff" stop-opacity="0"/>
+            <stop offset="1" stop-color="#7ec8ff" stop-opacity="0.9"/>
+          </linearGradient>
+          <radialGradient id="wheelGlow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#9bdcff" stop-opacity="0.25"/>
+            <stop offset="1" stop-color="#9bdcff" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect x="20" y="20" width="760" height="240" rx="36" fill="url(#panelGrad)" stroke="#1f3a78" stroke-width="2"/>
+
+        <!-- horizon strip (greens up when ignition on) -->
+        <rect class="horizon" x="220" y="44" width="360" height="10" rx="5"/>
+
+        <!-- converging lanes -->
+        <path d="M 392 70 L 200 250" stroke="url(#laneFade)" stroke-width="3" fill="none"/>
+        <path d="M 408 70 L 600 250" stroke="url(#laneFade)" stroke-width="3" fill="none"/>
+        <line x1="400" y1="80"  x2="400" y2="100" stroke="#7ec8ff" stroke-width="3" stroke-dasharray="6 8"/>
+        <line x1="400" y1="120" x2="400" y2="140" stroke="#7ec8ff" stroke-width="3" stroke-dasharray="6 8"/>
+        <line x1="400" y1="160" x2="400" y2="180" stroke="#7ec8ff" stroke-width="3" stroke-dasharray="6 8"/>
+
+        <!-- centre wheel/glow -->
+        <circle cx="400" cy="160" r="58" fill="url(#wheelGlow)"/>
+        <circle cx="400" cy="160" r="48" stroke="#cfe9ff" stroke-width="2" fill="none"/>
+        <circle cx="400" cy="160" r="4"  fill="#cfe9ff"/>
+
+        <!-- left arrow -->
+        <g id="iconLeft" class="indicator">
+          <path d="M 70 90 l -28 18 l 28 18 l 0 -10 l 60 0 l 0 -16 l -60 0 z" />
+        </g>
+        <!-- right arrow -->
+        <g id="iconRight" class="indicator">
+          <path d="M 730 90 l 28 18 l -28 18 l 0 -10 l -60 0 l 0 -16 l 60 0 z" />
+        </g>
+
+        <!-- car/reverse icon (top-left of centre) -->
+        <g id="iconCar" class="icon-state" transform="translate(160 170)">
+          <path d="M -18 6 L -14 -6 L 14 -6 L 18 6 Z" fill="currentColor"/>
+          <rect x="-20" y="6" width="40" height="10" rx="3" fill="currentColor"/>
+          <circle cx="-12" cy="18" r="4" fill="#0e1b3a" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12"  cy="18" r="4" fill="#0e1b3a" stroke="currentColor" stroke-width="2"/>
+        </g>
+
+        <!-- headlight icon -->
+        <g id="iconHeadlight" class="icon-state" transform="translate(640 170)">
+          <path d="M -14 -14 a 14 14 0 0 0 0 28 z" fill="currentColor"/>
+          <line x1="4"  y1="-10" x2="20" y2="-10" stroke="currentColor" stroke-width="3"/>
+          <line x1="4"  y1="0"   x2="20" y2="0"   stroke="currentColor" stroke-width="3"/>
+          <line x1="4"  y1="10"  x2="20" y2="10"  stroke="currentColor" stroke-width="3"/>
+        </g>
+
+        <!-- hazard triangle (bottom-left) -->
+        <g id="iconHazard" class="icon-state hazard-icon" transform="translate(160 230)">
+          <path d="M 0 -18 L 18 14 L -18 14 Z" fill="currentColor" stroke="#fff" stroke-width="1"/>
+          <text x="0" y="9" font-size="14" font-weight="700" text-anchor="middle" fill="#0e1b3a">!</text>
+        </g>
+
+        <!-- info / all-lamp icon (bottom-right) -->
+        <g id="iconAllLamp" class="icon-state" transform="translate(640 230)">
+          <circle r="14" stroke="currentColor" stroke-width="2.5" fill="none"/>
+          <text y="5" font-size="16" font-weight="700" text-anchor="middle" fill="currentColor">i</text>
+        </g>
+
+        <!-- BRAKE tell-tale (lights when foot brake pressed) -->
+        <g id="iconBrake" class="icon-state telltale-brake" transform="translate(320 232)">
+          <circle r="15" stroke="currentColor" stroke-width="2.5" fill="none"/>
+          <text y="5" font-size="11" font-weight="800" text-anchor="middle" fill="currentColor">(!)</text>
+          <text y="22" font-size="9" font-weight="700" text-anchor="middle" fill="currentColor" letter-spacing="1.2">BRAKE</text>
+        </g>
+
+        <!-- PARKING-BRAKE tell-tale (red P, lights when parking brake engaged) -->
+        <g id="iconParkingBrake" class="icon-state telltale-parking" transform="translate(480 232)">
+          <circle r="15" stroke="currentColor" stroke-width="2.5" fill="none"/>
+          <text y="6" font-size="16" font-weight="800" text-anchor="middle" fill="currentColor">P</text>
+          <text y="22" font-size="9" font-weight="700" text-anchor="middle" fill="currentColor" letter-spacing="1.2">PARK</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="control-grid">
+      <button class="ctl toggle" data-ch="headlight"
+              data-label-off="Head light OFF" data-label-on="Head light ON">Head light OFF</button>
+      <button class="ctl master"  data-ch="ignition"
+              data-label-off="IGNITION OFF" data-label-on="IGNITION ON">IGNITION OFF</button>
+      <button class="ctl momentary" data-ch="horn"
+              data-label-off="Horn" data-label-on="HORN">Horn</button>
+
+      <button class="ctl toggle" data-ch="all_lamp"
+              data-label-off="All Lamp Mode OFF" data-label-on="All Lamp Mode ON">All Lamp Mode OFF</button>
+      <button class="ctl toggle" data-ch="reverse"
+              data-label-off="Reverse" data-label-on="REVERSE">Reverse</button>
+      <button class="ctl toggle danger" data-ch="hazard"
+              data-label-off="Hazard Mode OFF" data-label-on="Hazard Mode ON">Hazard Mode OFF</button>
+
+      <button class="ctl toggle" data-ch="left_ind"
+              data-label-off="Left Indicator" data-label-on="LEFT IND">Left Indicator</button>
+      <button class="ctl momentary" data-ch="brake"
+              data-label-off="Brake" data-label-on="BRAKE">Brake</button>
+      <button class="ctl toggle" data-ch="right_ind"
+              data-label-off="Right Indicator" data-label-on="RIGHT IND">Right Indicator</button>
+
+      <button class="ctl toggle danger row-park" data-ch="parking_brake"
+              data-label-off="Parking Brake OFF" data-label-on="PARKING BRAKE">Parking Brake OFF</button>
+    </div>
+  </section>
+
+  <!-- ============================ CHAT (BOT) VIEW ============================ -->
+  <section class="view view-chat" id="viewBot">
+    <div class="chat-scroll" id="chatScroll">
+      <div class="chat-bubble bot">
+        <div class="bubble-body">Hi! I'm the EV Lab Chatbot. Ask me anything about electric vehicles. The first answer takes ~30 s while I warm up.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CONFIG VIEW ============================ -->
+  <section class="view view-config" id="viewConfig">
+    <div class="config-scroll">
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Speech-to-Text (microphone)</h2>
+        <p class="cfg-help">How spoken input is converted to text when you tap the MIC button.</p>
+        <div class="cfg-options" id="sttOptions">
+          <!-- radios injected by JS so the availability badge can reflect server state -->
+        </div>
+      </div>
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Text-to-Speech (chat replies)</h2>
+        <p class="cfg-help">How the chatbot's answers are spoken aloud.</p>
+        <div class="cfg-options" id="ttsOptions">
+        </div>
+        <div class="cfg-actions">
+          <button class="action" id="ttsTestBtn">Test voice</button>
+        </div>
+      </div>
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Text size</h2>
+        <p class="cfg-help">Scales all on-screen text — dashboard, chat, buttons, and config. Saved on this device.</p>
+        <div class="cfg-options" id="fontSizeOptions">
+          <!-- radios injected by JS -->
+        </div>
+      </div>
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Font style</h2>
+        <p class="cfg-help">Typeface used throughout the interface. Each option previews in its own font.</p>
+        <div class="cfg-options" id="fontFamilyOptions">
+        </div>
+      </div>
+
+      <div class="cfg-card cfg-info">
+        <h2 class="cfg-title">About</h2>
+        <ul class="cfg-meta-list">
+          <li>Server: <span id="cfgServer">—</span></li>
+          <li>Engine: <span id="cfgEngine">—</span></li>
+          <li>STT now: <span id="cfgSttNow">—</span></li>
+          <li>TTS now: <span id="cfgTtsNow">—</span></li>
+          <li>Text size: <span id="cfgFontSize">—</span></li>
+          <li>Font: <span id="cfgFontFamily">—</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ SHARED INPUT ROW ============================ -->
+<footer class="input-bar">
+  <input id="inputText" type="text" autocomplete="off" placeholder="Type a question or hold MIC to speak…">
+  <button id="micBtn" class="action mic">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/>
+    </svg>
+    MIC
+  </button>
+  <button id="sendBtn" class="action send">SEND</button>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

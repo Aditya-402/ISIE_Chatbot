@@ -1,11 +1,20 @@
 """GPIO control via gpiozero — one output device per signal.
 
 Each signal is a gpiozero DigitalOutputDevice (same family as LED, but it also
-handles active-low relays and has a built-in .blink()). Pins are addressed by
-their PHYSICAL board number via gpiozero's "BOARDnn" spec, so the code reads
-exactly like the pin you wire to (the outer / even-numbered column).
+handles active-low relays). Pins are addressed by their PHYSICAL board number
+via gpiozero's "BOARDnn" spec, so the code reads exactly like the pin you wire
+to (the outer / even-numbered column).
+
+The turn-indicator lamps have a HARDWARE flasher, so we drive them STEADY ON
+and let the hardware do the blinking — no software blink here. The horn beep
+is the one timed pattern we generate (beep()).
 
 Windows (dev): SIM_MODE is on and calls just print. Pi: the real pins drive.
+
+Public API used by server.py:
+    set(channel, on)                  - drive a channel ON / OFF
+    beep(channel, on_s, gap_s, count) - one-shot beep pattern (horn)
+    shutdown()                        - release all devices
 """
 
 from __future__ import annotations
@@ -38,8 +47,6 @@ def _log(msg: str) -> None:
     print(f"[hardware] {msg}")
 
 
-_blinking: set[str] = set()
-
 if config.SIM_MODE:
     _dev: dict = {}                       # Windows dev: no GPIO, log only
     _log(f"SIM mode — {len(PIN_MAP)} signals will log only.")
@@ -54,8 +61,7 @@ else:
 
 
 def set(channel: str, on: bool) -> None:
-    """Drive a channel ON or OFF (cancels any blink running on it)."""
-    _blinking.discard(channel)
+    """Drive a channel ON or OFF."""
     dev = _dev.get(channel)
     if dev is not None:
         dev.on() if on else dev.off()
@@ -63,27 +69,9 @@ def set(channel: str, on: bool) -> None:
         _log(f"{channel:<10s} -> {'ON' if on else 'OFF'}")
 
 
-def blink(channel: str, period_s: float = None) -> None:
-    """Blink continuously: ON half the cycle, OFF the other half. Idempotent."""
-    if channel in _blinking:
-        return
-    half = (period_s or config.INDICATOR_BLINK_PERIOD_S) / 2.0
-    _blinking.add(channel)
-    dev = _dev.get(channel)
-    if dev is not None:
-        dev.blink(on_time=half, off_time=half, background=True)
-    elif config.SIM_MODE:
-        _log(f"{channel:<10s} blink ({half * 2}s cycle)")
-
-
-def stop_blink(channel: str) -> None:
-    """Stop a blink and drive the channel OFF."""
-    set(channel, False)
-
-
 def beep(channel: str, on_s: float, gap_s: float, count: int) -> None:
-    """One-shot: ON on_s / OFF gap_s, repeated `count` times, then OFF (horn)."""
-    _blinking.discard(channel)
+    """One-shot: ON on_s / OFF gap_s, repeated `count` times, then OFF (horn).
+    gpiozero runs the pattern in the background."""
     dev = _dev.get(channel)
     if dev is not None:
         dev.blink(on_time=on_s, off_time=gap_s, n=count, background=True)
@@ -97,4 +85,3 @@ def shutdown() -> None:
         dev.off()
         dev.close()
     _dev.clear()
-    _blinking.clear()

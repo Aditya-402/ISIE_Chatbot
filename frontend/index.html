@@ -13,6 +13,7 @@
   <div class="title-meta">
     <span class="status-pill" id="statusPill">loading engine…</span>
     <span class="clock" id="clock">--:--</span>
+    <img class="brand-logo" src="/static/logo.png" alt="ISIE INDIA — Charging Career">
   </div>
 </header>
 
@@ -135,9 +136,6 @@
               data-label-off="Brake" data-label-on="BRAKE">Brake</button>
       <button class="ctl toggle" data-ch="right_ind"
               data-label-off="Right Indicator" data-label-on="RIGHT IND">Right Indicator</button>
-
-      <button class="ctl toggle danger row-park" data-ch="parking_brake"
-              data-label-off="Parking Brake OFF" data-label-on="PARKING BRAKE">Parking Brake OFF</button>
     </div>
   </section>
 
@@ -152,7 +150,20 @@
 
   <!-- ============================ CONFIG VIEW ============================ -->
   <section class="view view-config" id="viewConfig">
-    <div class="config-scroll">
+
+    <!-- password gate (shown until unlocked) -->
+    <div class="config-lock" id="configLock">
+      <div class="lock-card">
+        <div class="lock-icon">🔒</div>
+        <h2 class="cfg-title">Configuration locked</h2>
+        <p class="cfg-help">Enter the password to access settings.</p>
+        <input type="password" id="cfgPwInput" class="cfg-input" placeholder="Password" autocomplete="off">
+        <button class="action" id="cfgUnlockBtn">Unlock</button>
+        <div class="lock-error" id="cfgPwError"></div>
+      </div>
+    </div>
+
+    <div class="config-scroll" id="configContent" hidden>
 
       <div class="cfg-card">
         <h2 class="cfg-title">Speech-to-Text (microphone)</h2>
@@ -185,6 +196,17 @@
         <p class="cfg-help">Typeface used throughout the interface. Each option previews in its own font.</p>
         <div class="cfg-options" id="fontFamilyOptions">
         </div>
+      </div>
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Change password</h2>
+        <p class="cfg-help">Optional — update the password that unlocks this tab. Saved on this device.</p>
+        <div class="cfg-pw-fields">
+          <input type="password" id="cfgCurPw" class="cfg-input" placeholder="Current password" autocomplete="off">
+          <input type="password" id="cfgNewPw" class="cfg-input" placeholder="New password" autocomplete="off">
+          <button class="action" id="cfgPwSaveBtn">Save</button>
+        </div>
+        <div class="lock-error" id="cfgPwChangeMsg"></div>
       </div>
 
       <div class="cfg-card cfg-info">

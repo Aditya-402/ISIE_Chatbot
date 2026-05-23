@@ -113,9 +113,8 @@ COLOUR_ICON_ON     = "#ffffff"   # lit icon
 COLOUR_HAZARD      = "#e63946"   # hazard / warning red
 COLOUR_PANEL_FG    = "#ffffff"
 
-# Indicator blink cadence: seconds for a full ON+OFF cycle. Used by hazard
-# and all-lamp mode. 3.0 => 1.5 s on, 1.5 s off.
-INDICATOR_BLINK_PERIOD_S = 3.0
+# Indicator lamps have a HARDWARE flasher, so the software drives them steady
+# (no blink cadence here).
 
 # Horn: a single click fires a fixed beep pattern, then auto-off (not a latch).
 # Default: beep twice (2 s each) with a 3 s gap between, then off.
@@ -125,6 +124,11 @@ HORN_BEEP_COUNT = 2     # number of beeps
 
 # Reverse/forward: keying it on drives the pin for this long, then auto-off.
 REVERSE_PULSE_S = 5.0
+
+# Power-on self-test: <delay> after ignition ON, drive the brake output for
+# <hold> while flashing the PARKING-BRAKE tell-tale (not the brake tell-tale).
+BRAKE_TEST_DELAY_S = 0.5
+BRAKE_TEST_HOLD_S  = 1.0
 
 # Mode registry order (left-to-right on the BOT toggle strip).
 MODE_ORDER       = ("switching", "conversational")

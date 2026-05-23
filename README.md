@@ -207,8 +207,8 @@ Rules:
   level per polarity, so active-high relays don't fire at startup.
 - Wire each load's relay input to its BCM pin and a common **GND** from the
   same even row (pin 6, 14, 20, 30, or 34) to the relay board.
-- Indicator blink is software-driven on a **3 s cycle**
-  (`config.INDICATOR_BLINK_PERIOD_S`) — no hardware flasher needed.
+- Indicators are driven **steady** — the lamps have a **hardware flasher**
+  that does the blinking, so there's no software blink.
 
 `hardware.py` runs in SIM mode on Windows (state changes just log to stdout)
 and REAL mode on Linux (drives GPIO via gpiozero + the lgpio backend).
@@ -224,26 +224,36 @@ bar at the bottom is shared.
 - **BOT** — the chat view (answers + source chips + latency/gate meta).
 - **CONFIG** — voice backend selection and display (font) options.
 
+The ISIE INDIA logo sits in the top-right of the title bar, and all
+control-button labels are uppercase + bold.
+
 ### Dashboard controls
 
-Ten logical channels drive GPIO via `hardware.py`:
+Nine control buttons drive these signals:
 
-| Channel       | Behaviour                                                  |
-|---------------|------------------------------------------------------------|
-| ignition      | Latched master gate (also a GPIO output). Greys out every other button when OFF. Title bar flips green when ON. |
-| headlight     | Toggle                                                     |
-| all_lamp      | Software mode. Forces head lamp + tail lamp (brake) ON and blinks both indicators together on a 3 s cycle. |
-| hazard        | Software mode. Blinks both indicators together on a 3 s cycle. |
-| left_ind      | Toggle (steady). Mutually exclusive with right_ind. Blinks only under hazard / all-lamp. |
-| right_ind     | Toggle (steady). Same.                                     |
-| horn          | Click → fixed beep pattern (2 s on, 3 s gap, 2 s on, off). Tunable in config.py. |
-| brake         | Momentary — active while pressed (tail lamp).             |
-| reverse       | Key on → drives pin for 5 s, then auto-off (`REVERSE_PULSE_S`). |
-| parking_brake | Toggle (UI-only). Lights the red P tell-tale (shares the brake tell-tale). |
+| Channel    | Behaviour                                                  |
+|------------|------------------------------------------------------------|
+| ignition   | Latched master gate (also a GPIO output). Greys out every other button when OFF; title bar flips green when ON. On switch-ON it runs a power-on self-test (below). |
+| headlight  | Toggle                                                     |
+| all_lamp   | Software mode. Forces head lamp + tail lamp (brake) ON and turns both indicators ON (the hardware flasher blinks them). |
+| hazard     | Software mode. Turns both indicators ON (hardware flasher blinks them). |
+| left_ind   | Toggle. Mutually exclusive with right_ind. (Lamp blinks via the hardware flasher.) |
+| right_ind  | Toggle. Same.                                              |
+| horn       | Click → beep pattern: 2 s on, 3 s gap, 2 s on, off (`HORN_BEEP_*`). |
+| brake      | Momentary — active while pressed (tail lamp).             |
+| reverse    | Key on → drives the pin for 5 s, then auto-off (`REVERSE_PULSE_S`). |
 
-Turning ignition OFF cancels all active states and stops every blink/beep loop.
+Turning ignition OFF cancels all active states and pending timers.
+
+**Power-on self-test:** ~0.5 s after ignition is switched ON, the brake output
+pulses for 1 s while the **parking-brake** tell-tale lights (not the brake
+tell-tale). Timing: `BRAKE_TEST_DELAY_S` / `BRAKE_TEST_HOLD_S`.
 
 ### Config tab
+
+The Config tab is **password-protected** — default password `IsieIndiaOne23`.
+Enter it to unlock (per session); you can change it in the tab (stored
+per-device in `localStorage`). Settings available once unlocked:
 
 - **Speech-to-Text:** Off / Vosk (offline) / Google (online) — switched live;
   the MIC button greys out when STT is Off.
@@ -320,8 +330,9 @@ Everything tunable lives in **`config.py`**:
 - `MAX_ANSWER_WORDS`, `NUM_PREDICT`, `TEMPERATURE` — generation knobs
 - `DEFAULT_STT`, `DEFAULT_TTS` — backend selection (TTS is Pi-aware by default)
 - `SERVER_HOST`, `SERVER_PORT` — bind address (use `0.0.0.0` for LAN access)
-- `INDICATOR_BLINK_PERIOD_S` — indicator blink cadence (3 s cycle) for hazard / all-lamp
 - `HORN_BEEP_ON_S`, `HORN_BEEP_GAP_S`, `HORN_BEEP_COUNT` — horn beep pattern
+- `REVERSE_PULSE_S` — reverse/forward pulse duration
+- `BRAKE_TEST_DELAY_S`, `BRAKE_TEST_HOLD_S` — power-on brake/parking self-test timing
 - `CONTROL_CHANNELS` — logical channel registry (mirrored by `hardware.py`)
 
 Font size/style are **not** in config.py — they're per-device browser

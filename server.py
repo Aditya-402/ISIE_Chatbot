@@ -92,7 +92,7 @@ class Hub:
                     self.clients.discard(ws)
 
     def push_from_thread(self, message: dict):
-        """Schedule a broadcast from a worker thread (hardware blink loops)."""
+        """Schedule a broadcast from a worker thread (timed-pulse / self-test)."""
         if self.loop is None:
             return
         asyncio.run_coroutine_threadsafe(self.broadcast(message), self.loop)
@@ -118,6 +118,42 @@ _INDICATORS = ("left_ind", "right_ind")
 
 # Auto-off timers for timed-pulse channels (reverse/forward).
 _timers: dict[str, "threading.Timer"] = {}
+
+# Power-on self-test timers (brake pulse + parking-brake tell-tale flash).
+_brake_test_timers: list = []
+
+
+def _cancel_brake_test():
+    for t in _brake_test_timers:
+        t.cancel()
+    _brake_test_timers.clear()
+
+
+def _schedule_brake_test():
+    """After ignition ON: wait BRAKE_TEST_DELAY_S, then drive the brake output
+    for BRAKE_TEST_HOLD_S while lighting the PARKING-BRAKE tell-tale (not the
+    brake tell-tale). Brake is driven directly (we don't set vstate['brake'])
+    so the brake indicator stays dark; the parking-brake indicator shows."""
+    _cancel_brake_test()
+
+    def _on():
+        if not vstate.state["ignition"]:
+            return
+        hardware.set("brake", True)
+        vstate.apply("parking_brake", True)
+        hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+
+    def _off():
+        hardware.set("brake", False)
+        vstate.apply("parking_brake", False)
+        hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+
+    t_on = threading.Timer(config.BRAKE_TEST_DELAY_S, _on)
+    t_off = threading.Timer(config.BRAKE_TEST_DELAY_S + config.BRAKE_TEST_HOLD_S, _off)
+    for t in (t_on, t_off):
+        t.daemon = True
+        _brake_test_timers.append(t)
+        t.start()
 
 
 def _start_timed_pulse(ch: str, seconds: float):
@@ -155,15 +191,18 @@ def drive(ch: str, action: str) -> dict:
         vstate.apply("ignition", new)
         if not new:
             # Killing ignition clears every other intent (modes included) and
-            # cancels any pending timed pulses.
+            # cancels any pending timed pulses / self-test.
             for other in config.CONTROL_CHANNELS:
                 if other != "ignition":
                     vstate.apply(other, False)
             for t in _timers.values():
                 t.cancel()
             _timers.clear()
+            _cancel_brake_test()
         _apply_outputs()
         hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
+        if new:
+            _schedule_brake_test()    # power-on brake/parking self-test
         return {"channel": ch, "on": new, **vstate.snapshot()}
 
     if not vstate.state["ignition"]:
@@ -212,11 +251,14 @@ def _apply_outputs():
       * ignition OFF -> everything off (master gate).
       * headlight / brake -> standalone, driven by their own intent.
       * horn -> not steady here; a click fires a beep pattern (see drive()).
-      * all_lamp mode -> forces head lamp + tail lamp (brake) ON, and both
-        indicators blink together.
-      * hazard mode  -> both indicators blink together.
-      * otherwise    -> left/right indicators are independent steady toggles.
-      * indicator blink cadence = config.INDICATOR_BLINK_PERIOD_S (3 s cycle).
+      * reverse -> driven by intent (the 5 s timer manages it).
+      * all_lamp mode -> forces head lamp + tail lamp (brake) ON, and turns
+        BOTH indicators on.
+      * hazard mode  -> both indicators on.
+      * otherwise    -> left/right indicators follow their own toggle.
+
+    Indicators are driven STEADY — the lamps have a hardware flasher, so we
+    do NOT blink them in software.
     """
     on = vstate.state
 
@@ -224,7 +266,6 @@ def _apply_outputs():
     hardware.set("ignition", on["ignition"])
     if not on["ignition"]:
         for c in _PIN_CHANNELS:
-            hardware.stop_blink(c)
             hardware.set(c, False)
         return
 
@@ -236,14 +277,14 @@ def _apply_outputs():
     # Reverse/forward: driven by its intent, which the 5 s timer manages.
     hardware.set("reverse",   on["reverse"])
 
-    # Indicators: blink together under hazard OR all-lamp; else steady toggle.
+    # Indicators: ON under hazard OR all-lamp, else follow their own toggle.
+    # Steady output — the hardware flasher blinks the actual lamps.
     if on["hazard"] or all_lamp:
-        hardware.blink("left_ind")
-        hardware.blink("right_ind")
+        hardware.set("left_ind", True)
+        hardware.set("right_ind", True)
     else:
-        for ind in _INDICATORS:
-            hardware.stop_blink(ind)
-            hardware.set(ind, on[ind])
+        hardware.set("left_ind",  on["left_ind"])
+        hardware.set("right_ind", on["right_ind"])
 
 
 # --- Lifespan: warm up RAG + voice on startup --------------------------

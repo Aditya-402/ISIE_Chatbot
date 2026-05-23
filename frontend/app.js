@@ -47,6 +47,7 @@ const state = {
     fontSize: 'md',          // FONT_SIZES id
     fontFamily: 'system',    // FONT_FAMILIES id
   },
+  configUnlocked: false,     // Config tab is password-gated per session
 };
 
 const TAB_TITLES = {
@@ -68,6 +69,7 @@ function setTab(tab) {
     t.setAttribute('aria-selected', on ? 'true' : 'false');
   }
   $('#titleText').textContent = TAB_TITLES[tab];
+  if (tab === 'config') applyConfigLock();
 }
 for (const t of $$('.tab')) {
   t.addEventListener('click', () => setTab(t.dataset.tab));
@@ -121,20 +123,21 @@ function applyState(snap) {
   const hl = $('#iconHeadlight');
   if (hl) hl.classList.toggle('on', !!state.channels.headlight || allLamp);
 
-  // Brake / tail-lamp tell-tale: brake, parking brake, or all-lamp mode.
-  const brakeOn = !!state.channels.brake || !!state.channels.parking_brake || allLamp;
+  // Brake tell-tale: brake, or all-lamp mode. (Parking brake has its own
+  // tell-tale via setIcon('parking_brake') — kept separate.)
+  const brakeOn = !!state.channels.brake || allLamp;
   const brakeEl = $('#iconBrake');
   if (brakeEl) brakeEl.classList.toggle('on', brakeOn);
 
-  // Indicators: blink together under hazard/all-lamp; else steady individual.
+  // Indicators: the real lamps blink via the hardware flasher, so the
+  // dashboard arrows blink whenever an indicator is active (individually or
+  // under hazard / all-lamp).
   const left  = $('#iconLeft');
   const right = $('#iconRight');
-  left.classList.toggle('hazard',  modeBlink);
-  right.classList.toggle('hazard', modeBlink);
-  left.classList.toggle('on',  !modeBlink && !!state.channels.left_ind);
-  right.classList.toggle('on', !modeBlink && !!state.channels.right_ind);
-  left.classList.remove('blink');
-  right.classList.remove('blink');
+  left.classList.toggle('hazard',  !!state.channels.left_ind  || modeBlink);
+  right.classList.toggle('hazard', !!state.channels.right_ind || modeBlink);
+  left.classList.remove('on', 'blink');
+  right.classList.remove('on', 'blink');
 }
 
 function setIcon(ch) {
@@ -699,11 +702,76 @@ function renderFontOptions() {
 
 // Initial render with defaults so the Config tab isn't empty before the
 // server config arrives.
+// ---------- Config tab: password gate ----------
+// Client-side lock for a kiosk. Default password below; the user can change
+// it (stored in localStorage). Unlock lasts for the session (re-locks on
+// reload). This is access convenience, not strong security.
+const CFG_PW_KEY = 'ev.cfgPassword';
+const CFG_PW_DEFAULT = 'IsieIndiaOne23';
+
+function cfgPassword() {
+  try { return localStorage.getItem(CFG_PW_KEY) || CFG_PW_DEFAULT; }
+  catch { return CFG_PW_DEFAULT; }
+}
+
+function applyConfigLock() {
+  const lock = $('#configLock');
+  const content = $('#configContent');
+  if (!lock || !content) return;
+  if (state.configUnlocked) {
+    lock.hidden = true;
+    content.hidden = false;
+  } else {
+    lock.hidden = false;
+    content.hidden = true;
+    const inp = $('#cfgPwInput');
+    if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
+    const err = $('#cfgPwError'); if (err) err.textContent = '';
+  }
+}
+
+function tryUnlock() {
+  const inp = $('#cfgPwInput');
+  const err = $('#cfgPwError');
+  if (!inp) return;
+  if (inp.value === cfgPassword()) {
+    state.configUnlocked = true;
+    applyConfigLock();
+  } else {
+    if (err) err.textContent = 'Incorrect password.';
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+$('#cfgUnlockBtn').addEventListener('click', tryUnlock);
+$('#cfgPwInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
+});
+
+$('#cfgPwSaveBtn').addEventListener('click', () => {
+  const cur = $('#cfgCurPw'), nw = $('#cfgNewPw'), msg = $('#cfgPwChangeMsg');
+  if (!cur || !nw || !msg) return;
+  if (cur.value !== cfgPassword()) {
+    msg.classList.remove('ok'); msg.textContent = 'Current password is incorrect.';
+    return;
+  }
+  if (nw.value.length < 4) {
+    msg.classList.remove('ok'); msg.textContent = 'New password must be at least 4 characters.';
+    return;
+  }
+  try { localStorage.setItem(CFG_PW_KEY, nw.value); } catch {}
+  cur.value = ''; nw.value = '';
+  msg.classList.add('ok'); msg.textContent = 'Password updated.';
+});
+
+// ---------- final init ----------
 // Font prefs are defined further up as consts, so apply them here (after
 // their declarations) — calling applyDisplay() earlier would hit the
 // temporal dead zone on FONT_SIZES/FONT_FAMILIES and abort init.
 loadDisplay();
 applyDisplay();
+applyConfigLock();
 renderVoiceOptions('stt');
 renderVoiceOptions('tts');
 renderFontOptions();

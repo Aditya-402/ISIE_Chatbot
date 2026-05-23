@@ -70,6 +70,15 @@ body.ignition-on .title-bar { background: var(--title-on); }
 .status-pill.err   { background: rgba(230, 57, 70,  0.25); border-color: rgba(230, 57, 70, 0.55); }
 .clock { font-variant-numeric: tabular-nums; font-weight: 600; }
 
+/* brand logo, top-right corner of the title bar (white chip for contrast) */
+.brand-logo {
+  height: 34px; width: auto; display: block;
+  background: #fff;
+  border-radius: 8px;
+  padding: 3px 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+}
+
 /* ---------- tab bar (top, between title and stage) ---------- */
 .tab-bar {
   display: flex;
@@ -174,8 +183,9 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
 .ctl.row-park { grid-column: 2; }   /* parking brake centred on row 4 */
 .ctl {
   appearance: none; border: 0; cursor: pointer;
-  font: 600 calc(13px * var(--fs))/1.1 var(--font);
+  font: 700 calc(13px * var(--fs))/1.1 var(--font);
   letter-spacing: 0.4px;
+  text-transform: uppercase;
   color: #fff;
   padding: 0 8px;
   border-radius: var(--radius);
@@ -297,6 +307,42 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
   box-shadow: var(--shadow-card);
   padding: 14px;
 }
+/* config password gate */
+.config-lock {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.lock-card {
+  background: linear-gradient(180deg, #142555 0%, #0a1738 100%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 30px;
+  box-shadow: var(--shadow-card);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: min(360px, 90%);
+  text-align: center;
+}
+.lock-icon { font-size: calc(28px * var(--fs)); line-height: 1; }
+.cfg-input {
+  width: 100%; height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  font: calc(14px * var(--fs))/1 var(--font);
+  padding: 0 12px; outline: none;
+  transition: border-color 120ms, background 120ms;
+}
+.cfg-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.09); }
+.cfg-input::placeholder { color: var(--text-dim); }
+.lock-error {
+  min-height: 1.1em;
+  font-size: calc(12px * var(--fs));
+  color: #ff8a93;
+}
+.lock-error.ok { color: var(--good); }
+.cfg-pw-fields { display: flex; flex-direction: column; gap: 8px; }
+
 .config-scroll {
   flex: 1; overflow-y: auto;
   display: flex; flex-direction: column; gap: 12px;
@@ -434,6 +480,7 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
 /* ---------- responsive tweaks for 800x480 ---------- */
 @media (max-width: 900px), (max-height: 540px) {
   .title-bar { height: 44px; padding: 0 12px; }
+  .brand-logo { height: 26px; padding: 2px 6px; }
   .title-text { font-size: calc(14px * var(--fs)); letter-spacing: 1px; }
   .title-meta { gap: 8px; font-size: calc(11px * var(--fs)); }
   .tab-bar { padding: 4px 8px 0 8px; }

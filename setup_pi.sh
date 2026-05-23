@@ -24,8 +24,18 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 PY="${PYTHON:-python3}"
-VENV=".venv"
 MODEL="qwen2.5:1.5b"
+
+# Use an existing virtualenv if there is one — honours one that's already
+# activated, or a dir named env/ .venv/ venv/ in the project. Otherwise
+# create .venv. Override explicitly with:  VENV_DIR=env ./setup_pi.sh
+if   [ -n "${VENV_DIR:-}" ];     then VENV="$VENV_DIR"
+elif [ -n "${VIRTUAL_ENV:-}" ];  then VENV="$VIRTUAL_ENV"
+elif [ -d env ];                 then VENV="env"
+elif [ -d .venv ];               then VENV=".venv"
+elif [ -d venv ];                then VENV="venv"
+else                                  VENV=".venv"
+fi
 
 log()  { printf '\n\033[1;36m== %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m[WARN] %s\033[0m\n' "$*"; }
@@ -55,7 +65,7 @@ else
 fi
 
 # --- 3. Python virtual environment --------------------------------------
-log "Creating virtual environment: $VENV"
+log "Using virtual environment: $VENV"
 [ -d "$VENV" ] || "$PY" -m venv "$VENV"
 # shellcheck disable=SC1091
 source "$VENV/bin/activate"

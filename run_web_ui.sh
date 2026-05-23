@@ -37,11 +37,13 @@ if command -v curl >/dev/null 2>&1; then
 fi
 
 # --- 3. Launch the server (foreground) ----------------------
-# Prefer the local virtualenv created by setup_pi.sh; fall back to python3.
-# First answer takes ~2 min on a Pi 5 while the embedder + Ollama warm up.
-if [ -x ".venv/bin/python" ]; then
-    exec .venv/bin/python server.py
-else
-    echo "[info] .venv not found — using system python3. Run ./setup_pi.sh first for a clean env."
-    exec python3 server.py
+# Pick the Python: an already-activated venv first, then env/ .venv/ venv/,
+# else system python3. First answer takes ~2 min on a Pi 5 (embedder + Ollama).
+if   [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then PYBIN="$VIRTUAL_ENV/bin/python"
+elif [ -x "env/bin/python" ];   then PYBIN="env/bin/python"
+elif [ -x ".venv/bin/python" ]; then PYBIN=".venv/bin/python"
+elif [ -x "venv/bin/python" ];  then PYBIN="venv/bin/python"
+else PYBIN="python3"; echo "[info] no virtualenv found — using system python3."
 fi
+echo "[info] launching with: $PYBIN"
+exec "$PYBIN" server.py

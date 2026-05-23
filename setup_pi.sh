@@ -47,6 +47,7 @@ if command -v apt-get >/dev/null 2>&1; then
         portaudio19-dev libportaudio2 \
         espeak-ng \
         ffmpeg libsdl2-mixer-2.0-0 \
+        swig python3-dev build-essential liblgpio-dev \
       || warn "apt step failed — continuing (install espeak-ng etc. manually)."
   fi
 else
@@ -61,15 +62,21 @@ source "$VENV/bin/activate"
 python -m pip install --upgrade pip
 
 # --- 4. Python libraries (from PyPI / piwheels) -------------------------
+# CPU-only PyTorch FIRST: the Pi has no NVIDIA GPU, but the default aarch64
+# torch wheel drags in ~5 GB of unused CUDA libraries that can fill the disk.
+log "Installing CPU-only PyTorch…"
+pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+  || pip install --no-cache-dir "torch<2.7" \
+  || warn "CPU torch install failed; requirements.txt may pull the large CUDA build."
 log "Installing Python libraries (requirements.txt)…"
-pip install -r requirements.txt
+pip install --no-cache-dir -r requirements.txt
 
 # --- 4b. Pi-only GPIO library -------------------------------------------
 if [ "$(uname -s)" = "Linux" ]; then
   log "Installing Pi GPIO library (requirements-pi.txt)…"
   pip uninstall -y RPi.GPIO >/dev/null 2>&1 || true   # avoid clash with rpi-lgpio
-  pip install -r requirements-pi.txt \
-    || warn "rpi-lgpio install failed (fine if this is not a Raspberry Pi)."
+  pip install --no-cache-dir -r requirements-pi.txt \
+    || warn "rpi-lgpio build failed — need swig/python3-dev/build-essential (apt step above)."
 else
   warn "Not Linux — skipping rpi-lgpio (GPIO runs in SIM mode here)."
 fi

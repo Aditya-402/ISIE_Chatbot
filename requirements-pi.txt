@@ -18,4 +18,8 @@
 # provide the same module name and will conflict. If RPi.GPIO is already
 # present:  pip3 uninstall -y RPi.GPIO  before installing this.
 
+# NOTE: rpi-lgpio pulls in `lgpio`, which compiles from source when there's no
+# prebuilt wheel for your Python version (e.g. Python 3.13). That build needs
+# system tools — install them first:
+#   sudo apt install -y swig python3-dev build-essential liblgpio-dev
 rpi-lgpio>=0.6

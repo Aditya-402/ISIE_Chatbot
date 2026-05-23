@@ -119,11 +119,12 @@ pip3 install -r requirements.txt
 pip3 install -r requirements-pi.txt      # Pi-only: rpi-lgpio (see GPIO below)
 ```
 
-> **Pi 5 GPIO note:** the classic `RPi.GPIO` library does **not** work on the
-> Pi 5's RP1 I/O controller. `requirements-pi.txt` installs **`rpi-lgpio`**, a
-> drop-in that provides the same `import RPi.GPIO as GPIO` API on top of
-> lgpio — so no code changes are needed. Do **not** also install the classic
-> `RPi.GPIO`; the two conflict (`pip3 uninstall -y RPi.GPIO` first if present).
+> **Pi 5 GPIO note:** GPIO is driven via **gpiozero** with the **lgpio**
+> backend (`requirements-pi.txt`). gpiozero auto-selects the lgpio pin factory
+> on the Pi 5's RP1 I/O controller, so the classic `RPi.GPIO` is neither
+> needed nor compatible. `lgpio` compiles from source if there's no wheel for
+> your Python — `setup_pi.sh` installs `swig`/`python3-dev`/`build-essential`
+> for that.
 
 ### 4. Install Ollama + the LLM (one-time, needs internet)
 
@@ -208,7 +209,7 @@ Rules:
   (`config.INDICATOR_BLINK_PERIOD_S`) — no hardware flasher needed.
 
 `hardware.py` runs in SIM mode on Windows (state changes just log to stdout)
-and REAL mode on Linux (drives GPIO via rpi-lgpio).
+and REAL mode on Linux (drives GPIO via gpiozero + the lgpio backend).
 
 ---
 

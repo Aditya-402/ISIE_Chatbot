@@ -52,7 +52,8 @@ ACTIVE_HIGH: dict[str, bool] = {
 
 # --- Implementation switch ------------------------------------------------
 
-_gpio = None        # set to RPi.GPIO module in real mode
+_devices: dict[str, object] = {}   # channel -> gpiozero OutputDevice (real mode)
+_gpio_ready = False
 _pin_state: dict[str, bool] = {c: False for c in config.CONTROL_CHANNELS}
 _blink_threads: dict[str, threading.Event] = {}
 _lock = threading.Lock()
@@ -63,46 +64,55 @@ def _log(msg: str) -> None:
 
 
 def _init_real() -> None:
-    """Bind to the GPIO library when running on the Pi. Called lazily on the
+    """Create one gpiozero OutputDevice per mapped pin. Called lazily on the
     first set().
 
-    NOTE for Raspberry Pi 5: the classic `RPi.GPIO` does NOT work on the Pi
-    5's RP1 I/O controller. Install the drop-in `rpi-lgpio` instead — it
-    exposes the same `import RPi.GPIO as GPIO` API on top of lgpio. See
-    requirements-pi.txt. The import line below is unchanged either way.
+    gpiozero auto-selects the lgpio pin factory on the Raspberry Pi 5's RP1
+    I/O controller, so no RPi.GPIO / raw-level handling is needed. Pin numbers
+    in PIN_MAP are BCM (gpiozero's default). `active_high` is taken from
+    ACTIVE_HIGH and `initial_value=False` starts every pin in its OFF state, so
+    active-high relays don't fire on boot.
     """
-    global _gpio
-    if _gpio is not None:
+    global _gpio_ready
+    if _gpio_ready:
         return
     try:
-        import RPi.GPIO as GPIO  # type: ignore
+        from gpiozero import OutputDevice
+        for channel, pin in PIN_MAP.items():
+            _devices[channel] = OutputDevice(
+                pin,
+                active_high=ACTIVE_HIGH.get(channel, False),
+                initial_value=False,
+            )
     except Exception as e:
-        _log(f"GPIO library unavailable ({e}); staying in sim prints. "
-             f"On a Raspberry Pi 5 run:  pip3 install -r requirements-pi.txt")
+        # Import failed, or no pin factory (e.g. not a Pi) — stay in sim prints.
+        for dev in _devices.values():
+            try:
+                dev.close()
+            except Exception:
+                pass
+        _devices.clear()
+        _log(f"gpiozero unavailable ({e}); staying in sim prints. "
+             f"On a Raspberry Pi run:  pip3 install -r requirements-pi.txt")
         return
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-    for channel, pin in PIN_MAP.items():
-        # Start each pin in its OFF state, honouring per-channel polarity so
-        # active-high relays don't fire on boot.
-        off_level = GPIO.LOW if ACTIVE_HIGH.get(channel, False) else GPIO.HIGH
-        GPIO.setup(pin, GPIO.OUT, initial=off_level)
-    _gpio = GPIO
-    _log(f"GPIO ready (BCM pins): {PIN_MAP}")
+    _gpio_ready = True
+    _log(f"gpiozero ready (BCM pins): {PIN_MAP}")
 
 
 def _write(channel: str, on: bool) -> None:
-    """Drive the underlying pin. No-op in sim mode."""
+    """Drive the underlying pin via gpiozero. No-op in sim mode.
+
+    gpiozero applies the active-high/low polarity for us, so `on=True` always
+    means the load is energised regardless of wiring.
+    """
     if config.SIM_MODE:
         return
-    if _gpio is None:
+    if not _gpio_ready:
         _init_real()
-    if _gpio is None or channel not in PIN_MAP:
+    dev = _devices.get(channel)
+    if dev is None:
         return
-    pin = PIN_MAP[channel]
-    high_means_on = ACTIVE_HIGH.get(channel, False)
-    level = _gpio.HIGH if (on == high_means_on) else _gpio.LOW
-    _gpio.output(pin, level)
+    dev.on() if on else dev.off()
 
 
 # --- Public API -----------------------------------------------------------
@@ -194,17 +204,18 @@ def pulse_sequence(channel: str, steps: list[tuple[bool, float]]) -> None:
 
 
 def shutdown() -> None:
-    """Stop all blinkers and release GPIO."""
+    """Stop all blinkers and release the GPIO devices."""
     with _lock:
         threads = list(_blink_threads.values())
         _blink_threads.clear()
     for stop in threads:
         stop.set()
-    if _gpio is not None:
+    for dev in _devices.values():
         try:
-            _gpio.cleanup()
+            dev.close()
         except Exception:
             pass
+    _devices.clear()
 
 
 # --- Boot banner ----------------------------------------------------------

@@ -1,25 +1,21 @@
 # =============================================================
-#  Raspberry Pi 5 — GPIO control dependency (Pi ONLY)
+#  Raspberry Pi — GPIO control dependencies (Pi ONLY)
 # =============================================================
 # Install on the Pi AFTER the main requirements.txt:
 #
 #     pip3 install -r requirements.txt
 #     pip3 install -r requirements-pi.txt
 #
-# Why a separate file: this package is Linux/Pi-only and must NOT be
-# installed on the Windows dev machine (it would break `pip install`).
+# Why separate: these are Linux/Pi-only and must NOT be installed on the
+# Windows dev machine.
 #
-# Why rpi-lgpio (not RPi.GPIO): the classic RPi.GPIO library does not work
-# on the Raspberry Pi 5's RP1 I/O controller. rpi-lgpio is a drop-in
-# replacement that exposes the SAME `import RPi.GPIO as GPIO` API on top of
-# the lgpio kernel interface, so hardware.py needs no code change.
+# We use gpiozero (high-level API) with the lgpio backend. gpiozero
+# auto-selects the lgpio pin factory on the Raspberry Pi 5's RP1 I/O
+# controller, so the classic RPi.GPIO is neither needed nor compatible.
 #
-# IMPORTANT: do NOT install the classic `RPi.GPIO` alongside this — the two
-# provide the same module name and will conflict. If RPi.GPIO is already
-# present:  pip3 uninstall -y RPi.GPIO  before installing this.
-
-# NOTE: rpi-lgpio pulls in `lgpio`, which compiles from source when there's no
-# prebuilt wheel for your Python version (e.g. Python 3.13). That build needs
-# system tools — install them first:
+# NOTE: lgpio compiles from source when there's no prebuilt wheel for your
+# Python version (e.g. Python 3.13). Install the build tools first:
 #   sudo apt install -y swig python3-dev build-essential liblgpio-dev
-rpi-lgpio>=0.6
+
+gpiozero>=2.0
+lgpio>=0.2.2.0

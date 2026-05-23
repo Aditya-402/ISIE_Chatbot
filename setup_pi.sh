@@ -83,10 +83,10 @@ pip install --no-cache-dir -r requirements.txt
 
 # --- 4b. Pi-only GPIO library -------------------------------------------
 if [ "$(uname -s)" = "Linux" ]; then
-  log "Installing Pi GPIO library (requirements-pi.txt)…"
-  pip uninstall -y RPi.GPIO >/dev/null 2>&1 || true   # avoid clash with rpi-lgpio
+  log "Installing Pi GPIO libraries (gpiozero + lgpio)…"
+  pip uninstall -y RPi.GPIO >/dev/null 2>&1 || true   # not used on Pi 5; avoid confusion
   pip install --no-cache-dir -r requirements-pi.txt \
-    || warn "rpi-lgpio build failed — need swig/python3-dev/build-essential (apt step above)."
+    || warn "lgpio build failed — need swig/python3-dev/build-essential (apt step above)."
 else
   warn "Not Linux — skipping rpi-lgpio (GPIO runs in SIM mode here)."
 fi

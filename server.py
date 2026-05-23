@@ -144,17 +144,6 @@ def _start_timed_pulse(ch: str, seconds: float):
     t.start()
 
 
-def _horn_steps() -> list[tuple[bool, float]]:
-    """Beep pattern: ON/GAP repeated HORN_BEEP_COUNT times (gap between only).
-    pulse_sequence() leaves the channel OFF at the end."""
-    steps: list[tuple[bool, float]] = []
-    for i in range(config.HORN_BEEP_COUNT):
-        steps.append((True, config.HORN_BEEP_ON_S))
-        if i < config.HORN_BEEP_COUNT - 1:
-            steps.append((False, config.HORN_BEEP_GAP_S))
-    return steps
-
-
 def drive(ch: str, action: str) -> dict:
     """Apply a control action, recompute outputs, broadcast state."""
     if ch not in config.CONTROL_CHANNELS:
@@ -184,7 +173,8 @@ def drive(ch: str, action: str) -> dict:
     # Horn: a click fires a fixed beep pattern then auto-offs (not a latch).
     if ch == "horn":
         if action in ("press", "toggle"):
-            hardware.pulse_sequence("horn", _horn_steps())
+            hardware.beep("horn", config.HORN_BEEP_ON_S,
+                          config.HORN_BEEP_GAP_S, config.HORN_BEEP_COUNT)
         vstate.apply("horn", False)
         hub.push_from_thread({"type": "snapshot", **vstate.snapshot()})
         return {"channel": ch, "on": False, **vstate.snapshot()}

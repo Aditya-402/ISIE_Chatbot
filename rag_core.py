@@ -199,7 +199,7 @@ class RAGEngine:
             entry = {
                 "id": new_id, "question": question, "answer": answer,
                 "topic": "user-added",
-                "source": {"book": reference or "User added", "page": None},
+                "source": {"book": reference or "User added", "page": "-"},
                 "added": time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
             self.bank.append(entry)
@@ -211,7 +211,7 @@ class RAGEngine:
                 self.cache_index.add(vec)
                 self.cache_map.append({
                     "qa_id": new_id, "question": question, "gold_answer": answer,
-                    "topic": "user-added", "source": entry["source"]["book"], "page": None,
+                    "topic": "user-added", "source": entry["source"]["book"], "page": "-",
                 })
                 faiss.write_index(self.cache_index, str(config.CACHE_INDEX))
                 with open(config.CACHE_MAP, "w", encoding="utf-8") as f:

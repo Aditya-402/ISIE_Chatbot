@@ -47,7 +47,7 @@ html, body {
 /* ---------- title bar ---------- */
 .title-bar {
   display: flex; align-items: center; justify-content: space-between;
-  height: 52px; padding: 0 18px;
+  height: 66px; padding: 0 18px;
   background: var(--title-off);
   color: #fff;
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
@@ -69,13 +69,20 @@ body.ignition-on .title-bar { background: var(--title-on); }
 .status-pill.busy  { background: rgba(255, 194, 76, 0.20); border-color: rgba(255, 194, 76, 0.5); }
 .status-pill.err   { background: rgba(230, 57, 70,  0.25); border-color: rgba(230, 57, 70, 0.55); }
 .clock { font-variant-numeric: tabular-nums; font-weight: 600; }
+.temp {
+  font-variant-numeric: tabular-nums; font-weight: 600;
+  padding: 4px 8px; border-radius: 999px;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15);
+}
+.temp.warn { background: rgba(255,194,76,0.20); border-color: rgba(255,194,76,0.5); }
+.temp.hot  { background: rgba(230,57,70,0.25);  border-color: rgba(230,57,70,0.55); }
 
 /* brand logo, top-right corner of the title bar (white chip for contrast) */
 .brand-logo {
-  height: 34px; width: auto; display: block;
+  height: 48px; width: auto; display: block;
   background: #fff;
   border-radius: 8px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.35);
 }
 
@@ -110,7 +117,7 @@ body.ignition-on .title-bar { background: var(--title-on); }
 /* ---------- main stage ---------- */
 .stage {
   position: relative;
-  height: calc(100vh - 52px - 38px - 64px);
+  height: calc(100vh - 66px - 38px - 64px);
   background: radial-gradient(ellipse at top, #0e1b3a 0%, #050a1d 80%);
   padding: 10px 12px 10px 12px;
   display: flex;
@@ -584,13 +591,13 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
 
 /* ---------- responsive tweaks for 800x480 ---------- */
 @media (max-width: 900px), (max-height: 540px) {
-  .title-bar { height: 44px; padding: 0 12px; }
-  .brand-logo { height: 26px; padding: 2px 6px; }
+  .title-bar { height: 66px; padding: 0 12px; }
+  .brand-logo { height: 48px; padding: 4px 10px; }
   .title-text { font-size: calc(14px * var(--fs)); letter-spacing: 1px; }
   .title-meta { gap: 8px; font-size: calc(11px * var(--fs)); }
   .tab-bar { padding: 4px 8px 0 8px; }
   .tab { padding: 6px 12px; font-size: calc(11px * var(--fs)); letter-spacing: 1.4px; }
-  .stage { height: calc(100vh - 44px - 32px - 56px); padding: 8px 8px; gap: 8px; }
+  .stage { height: calc(100vh - 66px - 32px - 56px); padding: 8px 8px; gap: 8px; }
   .input-bar { height: 56px; padding: 0 8px; }
   #inputText, .action { height: 38px; font-size: calc(12px * var(--fs)); }
   .cluster { height: 48%; min-height: 170px; border-radius: 22px; }

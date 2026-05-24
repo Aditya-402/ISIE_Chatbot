@@ -99,6 +99,26 @@ function tickClock() {
 }
 tickClock(); setInterval(tickClock, 30 * 1000);
 
+// ---------- Pi CPU temperature (title bar) ----------
+async function pollTemp() {
+  try {
+    const r = await fetch('/api/temp');
+    if (!r.ok) return;
+    const d = await r.json();
+    const el = $('#cpuTemp');
+    if (!el) return;
+    if (d.temp_c != null) {
+      el.textContent = `${d.temp_c.toFixed(1)}°C`;
+      el.classList.toggle('warn', d.temp_c >= 70 && d.temp_c < 80);
+      el.classList.toggle('hot',  d.temp_c >= 80);
+    } else {
+      el.textContent = '—';
+      el.classList.remove('warn', 'hot');
+    }
+  } catch {}
+}
+pollTemp(); setInterval(pollTemp, 20 * 1000);
+
 // ---------- apply server snapshot to UI ----------
 function applyState(snap) {
   state.channels = snap.channels || {};
@@ -287,7 +307,8 @@ async function ask(question) {
         seen.add(key);
         const c = document.createElement('span');
         c.className = 'source-chip';
-        c.textContent = `${s.source}, p.${s.page}`;
+        const pg = (s.page == null || s.page === '') ? '-' : s.page;
+        c.textContent = `${s.source}, p.${pg}`;
         chips.appendChild(c);
       }
       el.appendChild(chips);

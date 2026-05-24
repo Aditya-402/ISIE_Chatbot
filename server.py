@@ -353,6 +353,20 @@ async def get_state():
     return {"ready": astate.ready, "error": astate.error, **vstate.snapshot()}
 
 
+def _cpu_temp_c():
+    """Raspberry Pi CPU temperature in °C (None off-Pi, e.g. Windows dev)."""
+    try:
+        with open("/sys/class/thermal/thermal_zone0/temp") as f:
+            return round(int(f.read().strip()) / 1000.0, 1)
+    except Exception:
+        return None
+
+
+@app.get("/api/temp")
+async def get_temp():
+    return {"temp_c": _cpu_temp_c()}
+
+
 class ControlBody(BaseModel):
     action: str           # "toggle" | "press" | "release"
 
@@ -452,13 +466,13 @@ async def delete_bank(qa_id: str):
 # state itself (updated live via /ws/state); the message is for speech + errors.
 
 _SWITCH_LABELS = {
-    "ignition": "Engine", "headlight": "Headlights", "all_lamp": "All-lamp mode",
+    "ignition": "Vehicle", "headlight": "Headlights", "all_lamp": "All-lamp mode",
     "hazard": "Hazard lights", "left_ind": "Left indicator", "right_ind": "Right indicator",
     "brake": "Brake", "horn": "Horn", "reverse": "Reverse",
 }
 _TOGGLE_CHANNELS = ("headlight", "all_lamp", "hazard", "left_ind", "right_ind")
 _TRIGGER_CHANNELS = ("horn", "reverse")
-_GATE_MSG = "Ignition is off — start the engine first."
+_GATE_MSG = "The vehicle is off — turn it on first."
 
 
 def _switch_result(ok, level, message):
@@ -504,9 +518,9 @@ async def post_switch(body: SwitchBody):
     # Ignition: the master gate.
     if ch == "ignition":
         if ign == desired:
-            return _switch_result(True, "ok", f"Engine already {'on' if desired else 'off'}.")
+            return _switch_result(True, "ok", f"Vehicle already {'on' if desired else 'off'}.")
         drive("ignition", "toggle")
-        return _switch_result(True, "ok", f"Engine {'started' if desired else 'stopped'}.")
+        return _switch_result(True, "ok", f"Vehicle {'on' if desired else 'off'}.")
 
     # Everything else needs ignition on.
     if not ign:

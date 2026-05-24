@@ -53,6 +53,38 @@ class RAGEngine:
 
         self._ollama = ollama.Client(host=f"http://{config.OLLAMA_HOST}")
 
+        # Tier-1 Q&A-bank cache (optional). Answers (reworded) bank questions
+        # instantly from the vetted gold answer, with no LLM call.
+        self.cache_index = None
+        self.cache_map = None
+        if getattr(config, "CACHE_ENABLED", False):
+            try:
+                print(f"[rag] loading Q&A cache from {config.CACHE_INDEX}")
+                self.cache_index = faiss.read_index(str(config.CACHE_INDEX))
+                with open(config.CACHE_MAP, encoding="utf-8") as f:
+                    self.cache_map = json.load(f)
+                print(f"[rag] cache ready: {self.cache_index.ntotal} bank questions "
+                      f"(T={config.T_CACHE})")
+            except Exception as e:
+                print(f"[rag] cache disabled (load failed: {e})")
+                self.cache_index = None
+
+    # --- cache --------------------------------------------------------------
+
+    def cache_lookup(self, question: str) -> Optional[dict]:
+        """Return the bank Q&A dict if the question matches a cached bank
+        question at >= T_CACHE cosine similarity, else None."""
+        if self.cache_index is None:
+            return None
+        vec = self.embedder.encode([question], normalize_embeddings=True).astype(np.float32)
+        sims, ids = self.cache_index.search(vec, 1)
+        score = float(sims[0][0])
+        if score >= config.T_CACHE:
+            hit = dict(self.cache_map[int(ids[0][0])])
+            hit["_cache_score"] = round(score, 4)
+            return hit
+        return None
+
     # --- retrieval ----------------------------------------------------------
 
     def retrieve(self, query: str) -> list[dict]:
@@ -122,12 +154,36 @@ class RAGEngine:
             return cand[:cut + 1]
         return cand.rstrip(",;:") + "..."
 
+    @staticmethod
+    def _trim_words(text: str, n: int) -> str:
+        """Cap a chunk's text at n words before it goes into the prompt."""
+        w = text.split()
+        return text if len(w) <= n else " ".join(w[:n])
+
     def answer(self, question: str) -> dict:
-        """Main entry: returns {text, sources, gate_reason, top_dense_score,
-        top_rrf_score}. Caller can render the sources panel + read the gate
-        reason if it wants to show why a refusal happened."""
+        """Main entry. Tier 1: Q&A-bank cache (instant, no LLM). Tier 2/3:
+        hybrid retrieval -> gate -> trimmed-context LLM. Adds cache_hit/
+        cache_score to the returned dict (existing keys unchanged)."""
         import time
         t0 = time.time()
+
+        # Tier 1 - Q&A-bank cache: a (reworded) bank question -> vetted gold answer.
+        hit = self.cache_lookup(question)
+        if hit is not None:
+            return {
+                "text":            hit.get("gold_answer", ""),
+                "sources":         [{"source": hit.get("source"),
+                                     "file":   hit.get("source"),
+                                     "page":   hit.get("page")}],
+                "gate_reason":     None,
+                "top_dense_score": hit.get("_cache_score"),
+                "top_rrf_score":   None,
+                "latency":         round(time.time() - t0, 2),
+                "refused":         False,
+                "cache_hit":       True,
+                "cache_score":     hit.get("_cache_score"),
+            }
+
         retrieved = self.retrieve(question)
 
         if config.GATE_ENABLED:
@@ -141,11 +197,15 @@ class RAGEngine:
                     "top_rrf_score":   retrieved[0]["score"]       if retrieved else None,
                     "latency":         round(time.time() - t0, 2),
                     "refused":         True,
+                    "cache_hit":       False,
                 }
 
+        # Feed only the top CONTEXT_TOP_K chunks, each capped at CONTEXT_WORD_CAP
+        # words - the time-to-first-token lever validated on the Pi.
         context = "\n\n".join(
-            f"[Context {i}] Source: {r['source']}, Page {r['page']}\n{r['text']}"
-            for i, r in enumerate(retrieved[:config.TOP_K], 1)
+            f"[Context {i}] Source: {r['source']}, Page {r['page']}\n"
+            f"{self._trim_words(r['text'], config.CONTEXT_WORD_CAP)}"
+            for i, r in enumerate(retrieved[:config.CONTEXT_TOP_K], 1)
         )
         resp = self._ollama.chat(
             model=config.LLM_MODEL,
@@ -172,6 +232,7 @@ class RAGEngine:
             "top_rrf_score":   retrieved[0]["score"]       if retrieved else None,
             "latency":         round(time.time() - t0, 2),
             "refused":         refused,
+            "cache_hit":       False,
         }
 
 

@@ -31,9 +31,15 @@ LLM_MODEL   = "qwen2.5:1.5b"
 
 # --- Retrieval ------------------------------------------------------------
 
-TOP_K              = 3       # chunks fed to the LLM
+TOP_K              = 3       # candidates retrieved (the gate inspects the top one)
 HYBRID_OVER_K      = 15      # candidates each retriever returns before RRF
 RRF_K              = 60      # Cormack et al. constant
+
+# Context actually fed to the LLM. Latency lever (validated 2026-05-24 on Pi 5):
+# the dominant per-question cost is prompt-eval of the retrieved text, so feeding
+# fewer/shorter chunks slashes time-to-first-token without hurting accuracy.
+CONTEXT_TOP_K      = 1       # how many top chunks go into the prompt
+CONTEXT_WORD_CAP   = 100     # truncate each fed chunk to this many words
 
 # --- Retrieval-confidence gate (Discovery 12, calibrated 2026-05-22) ------
 # A 2-signal gate that short-circuits the LLM with "out of scope" when
@@ -47,28 +53,38 @@ GATE_HYBRID           = 0.020
 
 REFUSAL_TEXT = "Out of scope for the EV lab knowledge base."
 
+# --- Q&A-bank cache (Tier 1, ahead of retrieval) --------------------------
+# Students are given the question bank and type questions from it, so most
+# queries are (reworded) bank questions. A cache of the bank's Q&A pairs answers
+# those instantly with the vetted gold answer - no LLM call. Validated 2026-05-24
+# on Pi 5: T_CACHE=0.92 gave 100% precision on paraphrased bank questions, while
+# off-script questions stay below threshold and fall through to RAG. The bank
+# embedded in faiss.cache.index MUST match the bank handed to students - rebuild
+# with build_cache.py whenever the bank changes.
+
+CACHE_ENABLED = True
+CACHE_INDEX   = RAG_DATA_DIR / "faiss.cache.index"
+CACHE_MAP     = RAG_DATA_DIR / "cache_map.json"
+T_CACHE       = 0.92
+
 # --- LLM generation -------------------------------------------------------
 
 MAX_ANSWER_WORDS = 40
-NUM_PREDICT      = 120         # ollama token budget
+NUM_PREDICT      = 60          # ollama token budget (~45 words; answer capped at 40)
 TEMPERATURE      = 0
 
+# Lean prompt (validated 2026-05-24): a shorter system prompt + small context keep
+# time-to-first-token low. Keeps the strict scope rule, refusal line, word cap, and
+# "quote exact numbers" guidance. The fuller prompt is in git history if more
+# stylistic guidance is wanted (re-test latency if you lengthen it).
 RAG_SYSTEM_PROMPT = (
-    "You are an EV (electric vehicle) tutor for beginner lab students.\n"
-    "STRICT SCOPE RULE: Answer using ONLY the facts in the provided context. "
-    "You MUST NOT use any outside knowledge, training data, or general world knowledge. "
-    "If the provided context does NOT directly answer the question (or the question is unrelated to EV technology - e.g. consumer car prices, weather, sports, recipes, personal advice), "
-    "you MUST reply with EXACTLY this single line and nothing else: "
-    f"{REFUSAL_TEXT}\n"
-    f"Write at most {MAX_ANSWER_WORDS} words. Stop writing after {MAX_ANSWER_WORDS} words.\n"
-    "Explain in simple, beginner-friendly language. Avoid unexplained jargon - "
-    "if a technical term is needed, add a short plain-English meaning in parentheses "
-    "(e.g. 'BMS (battery management system)').\n"
-    "Lead with the direct answer; skip preamble like 'According to the context'.\n"
-    "Quote exact numbers, names, and technical terms from the context - do NOT paraphrase them.\n"
-    "If the question asks for items, options, or steps, give the complete list before any explanation.\n"
-    "Do NOT include information that doesn't directly answer the question, even if it's in the context.\n"
-    "Do NOT include a source line - it will be added automatically."
+    "You are an EV tutor for beginners. Answer using ONLY the context; do not use "
+    "outside knowledge. If the context does not answer the question (or it is unrelated "
+    "to EV technology - e.g. consumer car prices or buying advice, weather, sports, "
+    f"recipes), reply with EXACTLY this line and nothing else: {REFUSAL_TEXT} "
+    f"Otherwise answer in at most {MAX_ANSWER_WORDS} words, in plain beginner-friendly "
+    "language. Lead with the direct answer; quote exact numbers and technical terms "
+    "from the context."
 )
 
 # --- Voice (Tkinter UI radio buttons select between these) ----------------

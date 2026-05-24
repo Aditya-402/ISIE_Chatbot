@@ -42,18 +42,21 @@ const state = {
     ttsOptions: ['off', 'browser', 'pyttsx3', 'gtts'],
     sttBackends: {},
     ttsBackends: {},
+    ttsRate: 160,            // offline (pyttsx3) words/min
   },
   display: {                 // client-only, persisted in localStorage
     fontSize: 'md',          // FONT_SIZES id
     fontFamily: 'system',    // FONT_FAMILIES id
   },
   configUnlocked: false,     // Config tab is password-gated per session
+  kbUnlocked: false,         // Knowledge Base tab is password-gated per session
 };
 
 const TAB_TITLES = {
   dashboard: 'IOT ELECTRIC VEHICLE DASHBOARD',
   bot:       'VEHICLE VOICE CONTROL & CHAT BOT',
   config:    'CONFIGURATION',
+  kb:        'KNOWLEDGE BASE',
 };
 
 // ---------- tab navigation ----------
@@ -63,13 +66,18 @@ function setTab(tab) {
   $('#viewDashboard').classList.toggle('active', tab === 'dashboard');
   $('#viewBot').classList.toggle('active', tab === 'bot');
   $('#viewConfig').classList.toggle('active', tab === 'config');
+  $('#viewKb').classList.toggle('active', tab === 'kb');
   for (const t of $$('.tab')) {
     const on = t.dataset.tab === tab;
     t.classList.toggle('active', on);
     t.setAttribute('aria-selected', on ? 'true' : 'false');
   }
   $('#titleText').textContent = TAB_TITLES[tab];
+  $('#inputText').placeholder = (tab === 'dashboard')
+    ? 'Speak or type a command — e.g. "turn on the headlights"'
+    : 'Type a question or hold MIC to speak…';
   if (tab === 'config') applyConfigLock();
+  if (tab === 'kb')     applyKbLock();
 }
 for (const t of $$('.tab')) {
   t.addEventListener('click', () => setTab(t.dataset.tab));
@@ -218,6 +226,8 @@ pollReady();
 
 // ---------- chat ----------
 const chatScroll = $('#chatScroll');
+let chatAbort = null;   // AbortController for the in-flight /api/ask request
+const INITIAL_GREETING = "Hi! I'm the EV Lab Chatbot. Ask me anything about electric vehicles. The first answer takes ~30 s while I warm up.";
 function bubble(kind, text) {
   const el = document.createElement('div');
   el.className = `chat-bubble ${kind}`;
@@ -247,12 +257,15 @@ async function ask(question) {
   const dots = typingDots();
   state.busy = true;
   setStatus('thinking…', 'busy');
+  const ac = new AbortController();
+  chatAbort = ac;
 
   try {
     const r = await fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({question}),
+      signal: ac.signal,
     });
     dots.remove();
     if (!r.ok) {
@@ -291,11 +304,87 @@ async function ask(question) {
     if (out.text && !out.refused) speak(out.text);
   } catch (e) {
     dots.remove();
-    bubble('refuse', `network error: ${e}`);
+    if (e.name === 'AbortError') {
+      setStatus('stopped', '');
+    } else {
+      bubble('refuse', `network error: ${e}`);
+      setStatus('error', 'err');
+    }
+  } finally {
+    state.busy = false;
+    chatAbort = null;
+  }
+}
+
+// ---------- chat controls: stop + reset ----------
+function stopChat() {
+  if (chatAbort) { try { chatAbort.abort(); } catch {} }          // abort in-flight /api/ask
+  try { speechSynthesis.cancel(); } catch {}                      // stop browser TTS
+  try { if (serverAudio) serverAudio.pause(); } catch {}          // stop server TTS playback
+  const dots = chatScroll.querySelector('.typing-dots');
+  if (dots) dots.remove();
+  state.busy = false;
+  setStatus(state.ready ? 'ready' : 'stopped', state.ready ? 'ready' : '');
+}
+
+function resetChat() {
+  stopChat();
+  chatScroll.innerHTML = '';
+  bubble('bot', INITIAL_GREETING);
+}
+
+$('#stopBtn').addEventListener('click', stopChat);
+$('#resetBtn').addEventListener('click', resetChat);
+
+// ---------- switching / IoT mode: voice/text commands -> control ----------
+// On the Dashboard (switching) tab the shared input bar + MIC drive controls
+// via the LLM intent classifier; on the Bot tab they do RAG chat. Success is
+// shown by the button changing colour (live via /ws/state); the toast carries
+// the spoken/written confirmation and any error/refusal.
+let _toastTimer = null;
+function showSwitchToast(msg, level) {
+  const el = $('#switchToast');
+  if (!el || !msg) return;
+  el.textContent = msg;
+  el.className = 'switch-toast show ' + (level || 'ok');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.className = 'switch-toast'; }, 3500);
+}
+
+async function sendSwitchCommand(text) {
+  if (state.busy) return;
+  state.busy = true;
+  setStatus('command…', 'busy');
+  try {
+    const r = await fetch('/api/switch', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text}),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      showSwitchToast(`error: ${r.status} ${t.slice(0, 80)}`, 'error');
+      setStatus('error', 'err');
+      return;
+    }
+    const out = await r.json();
+    applyState(out);                       // buttons reflect the new state immediately
+    showSwitchToast(out.message || '', out.level || 'ok');
+    setStatus('ready', 'ready');
+    if (out.message) speak(out.message);   // speak-back works in switching too (if TTS on)
+  } catch (e) {
+    showSwitchToast('network error', 'error');
     setStatus('error', 'err');
   } finally {
     state.busy = false;
   }
+}
+
+// Route shared-input / mic text to the right handler for the active tab.
+function routeInput(text) {
+  text = (text || '').trim();
+  if (!text) return;
+  if (state.tab === 'dashboard') sendSwitchCommand(text);
+  else ask(text);
 }
 
 // ---------- TTS (router: off / browser / pyttsx3 / gtts) ----------
@@ -414,7 +503,8 @@ async function stopRec() {
     const out = await r.json();
     const text = (out.text || '').trim();
     setStatus('ready', 'ready');
-    if (text) ask(text);
+    if (text) routeInput(text);
+    else if (state.tab === 'dashboard') showSwitchToast("Didn't catch that.", 'error');
     else bubble('bot', "(didn't catch that)");
   } catch (e) {
     setStatus('STT error', 'err');
@@ -467,7 +557,7 @@ const inputEl = $('#inputText');
 function submitFromInput() {
   const t = inputEl.value;
   inputEl.value = '';
-  ask(t);
+  routeInput(t);
 }
 sendBtn.addEventListener('click', submitFromInput);
 inputEl.addEventListener('keydown', e => {
@@ -563,8 +653,10 @@ async function loadVoiceConfig() {
     state.voice.ttsOptions  = cfg.tts_options || state.voice.ttsOptions;
     state.voice.sttBackends = cfg.stt_backends || {};
     state.voice.ttsBackends = cfg.tts_backends || {};
+    if (cfg.tts_rate != null) state.voice.ttsRate = cfg.tts_rate;
     renderVoiceOptions('stt');
     renderVoiceOptions('tts');
+    renderRateOptions();
     renderConfigMeta();
     refreshMicButton();
   } catch (e) {
@@ -600,6 +692,54 @@ async function setVoice(role, value) {
 $('#ttsTestBtn').addEventListener('click', () => {
   speak('Text to speech test. This is the EV Lab dashboard.');
 });
+
+// ---------- Config: speech rate (offline pyttsx3 voice) ----------
+const TTS_RATES = [
+  {id: 'slow',   label: 'Slow',   rate: 125},
+  {id: 'normal', label: 'Normal', rate: 160},
+  {id: 'fast',   label: 'Fast',   rate: 200},
+];
+function ratePresetFor(r) {            // closest preset to the current numeric rate
+  let best = TTS_RATES[1];
+  for (const o of TTS_RATES) if (Math.abs(o.rate - r) < Math.abs(best.rate - r)) best = o;
+  return best;
+}
+function renderRateOptions() {
+  const host = $('#ttsRateOptions');
+  if (!host) return;
+  host.innerHTML = '';
+  const cur = ratePresetFor(state.voice.ttsRate);
+  for (const o of TTS_RATES) {
+    const row = document.createElement('label');
+    row.className = 'cfg-option' + (o.id === cur.id ? ' checked' : '');
+    const radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'tts-rate'; radio.value = o.id;
+    radio.checked = (o.id === cur.id);
+    radio.addEventListener('change', () => setRate(o.rate));
+    const lab = document.createElement('span');
+    lab.className = 'cfg-option-label';
+    lab.textContent = o.label;
+    const sub = document.createElement('span');
+    sub.className = 'cfg-option-sub'; sub.textContent = ` — ${o.rate} wpm`;
+    lab.appendChild(sub);
+    row.appendChild(radio); row.appendChild(lab);
+    host.appendChild(row);
+  }
+}
+async function setRate(rate) {
+  try {
+    const r = await fetch('/api/voice/config', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({tts_rate: rate}),
+    });
+    if (!r.ok) { setStatus(`rate save failed: ${r.status}`, 'err'); return; }
+    const out = await r.json();
+    if (out.tts_rate != null) state.voice.ttsRate = out.tts_rate;
+    renderRateOptions();
+  } catch (e) {
+    setStatus(`rate error: ${e}`, 'err');
+  }
+}
 
 // ---------- Config tab: display (font size + font style) ----------
 // Client-only preferences, persisted in localStorage and applied globally
@@ -765,6 +905,159 @@ $('#cfgPwSaveBtn').addEventListener('click', () => {
   msg.classList.add('ok'); msg.textContent = 'Password updated.';
 });
 
+// ---------- Knowledge Base tab ----------
+// Separate password from Config (its own localStorage key). Unlock shows the
+// full bank (search-filtered) + an Add modal + a Download-handout button.
+const KB_PW_KEY = 'ev.kbPassword';
+const KB_PW_DEFAULT = 'IsieKB@dmin23';
+function kbPassword() {
+  try { return localStorage.getItem(KB_PW_KEY) || KB_PW_DEFAULT; }
+  catch { return KB_PW_DEFAULT; }
+}
+
+let bankItems = [];
+
+function applyKbLock() {
+  const lock = $('#kbLock'), content = $('#kbContent');
+  if (!lock || !content) return;
+  if (state.kbUnlocked) {
+    lock.hidden = true; content.hidden = false;
+    loadBank();
+  } else {
+    lock.hidden = false; content.hidden = true;
+    const inp = $('#kbPwInput');
+    if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
+    const err = $('#kbPwError'); if (err) err.textContent = '';
+  }
+}
+
+function tryUnlockKb() {
+  const inp = $('#kbPwInput'), err = $('#kbPwError');
+  if (!inp) return;
+  if (inp.value === kbPassword()) { state.kbUnlocked = true; applyKbLock(); }
+  else { if (err) err.textContent = 'Incorrect password.'; inp.value = ''; inp.focus(); }
+}
+
+async function loadBank() {
+  try {
+    const r = await fetch('/api/bank/list');
+    if (!r.ok) return;
+    const d = await r.json();
+    bankItems = d.items || [];
+    $('#kbCount').textContent = (d.count != null ? d.count : bankItems.length);
+    renderBank();
+  } catch {}
+}
+
+function renderBank() {
+  const host = $('#kbList');
+  host.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for (const it of bankItems) {
+    const el = document.createElement('div');
+    el.className = 'kb-item';
+    el.dataset.text = ((it.question || '') + ' ' + (it.answer || '')).toLowerCase();
+
+    const head = document.createElement('div'); head.className = 'kb-item-head';
+    const q = document.createElement('div'); q.className = 'kb-q'; q.textContent = it.question || '';
+    if (it.deletable) {
+      const badge = document.createElement('span');
+      badge.className = 'kb-badge-added'; badge.textContent = 'ADDED';
+      q.appendChild(badge);
+    }
+    head.appendChild(q);
+    if (it.deletable) {                       // only user-added rows get a delete button
+      const del = document.createElement('button');
+      del.className = 'kb-del'; del.textContent = '✕';
+      del.title = 'Delete this added question';
+      del.addEventListener('click', () => deleteQuestion(it.id, it.question));
+      head.appendChild(del);
+    }
+    el.appendChild(head);
+
+    const a = document.createElement('div'); a.className = 'kb-a'; a.textContent = it.answer || '';
+    el.appendChild(a);
+    if (it.reference) {
+      const rf = document.createElement('div'); rf.className = 'kb-ref'; rf.textContent = it.reference;
+      el.appendChild(rf);
+    }
+    frag.appendChild(el);
+  }
+  host.appendChild(frag);
+  filterBank();
+}
+
+async function deleteQuestion(id, label) {
+  if (!confirm('Delete this added question?\n\n' + (label || id) + '\n\nThis cannot be undone.')) return;
+  try {
+    const r = await fetch('/api/bank/' + encodeURIComponent(id), {method: 'DELETE'});
+    if (!r.ok) { const t = await r.text(); alert('Delete failed: ' + r.status + ' ' + t.slice(0, 120)); return; }
+    await loadBank();
+  } catch (e) {
+    alert('Delete error: ' + e);
+  }
+}
+
+function filterBank() {
+  const q = ($('#kbSearch').value || '').toLowerCase();
+  for (const el of $('#kbList').children) {
+    el.style.display = el.dataset.text.indexOf(q) >= 0 ? '' : 'none';
+  }
+}
+
+function openKbModal() {
+  $('#kbQ').value = ''; $('#kbA').value = ''; $('#kbR').value = '';
+  const msg = $('#kbAddMsg'); msg.textContent = ''; msg.classList.remove('ok');
+  $('#kbModal').hidden = false;
+  setTimeout(() => $('#kbQ').focus(), 50);
+}
+function closeKbModal() { $('#kbModal').hidden = true; }
+
+async function submitKbQuestion() {
+  const q = $('#kbQ').value.trim(), a = $('#kbA').value.trim(), ref = $('#kbR').value.trim();
+  const msg = $('#kbAddMsg'); msg.classList.remove('ok');
+  if (!q || !a) { msg.textContent = 'Question and answer are required.'; return; }
+  const btn = $('#kbSaveBtn'); btn.disabled = true; msg.textContent = 'Adding…';
+  try {
+    const r = await fetch('/api/bank/add', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q, answer: a, reference: ref}),
+    });
+    if (!r.ok) { const t = await r.text(); msg.textContent = `Failed: ${r.status} ${t.slice(0,120)}`; return; }
+    closeKbModal();
+    await loadBank();
+  } catch (e) {
+    msg.textContent = `Error: ${e}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function downloadBank() {
+  const a = document.createElement('a');
+  a.href = '/api/bank/download'; a.download = 'question_bank.html';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+$('#kbUnlockBtn').addEventListener('click', tryUnlockKb);
+$('#kbPwInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tryUnlockKb(); } });
+$('#kbSearch').addEventListener('input', filterBank);
+$('#kbAddBtn').addEventListener('click', openKbModal);
+$('#kbCancelBtn').addEventListener('click', closeKbModal);
+$('#kbSaveBtn').addEventListener('click', submitKbQuestion);
+$('#kbDownloadBtn').addEventListener('click', downloadBank);
+$('#kbModal').addEventListener('click', e => { if (e.target === $('#kbModal')) closeKbModal(); });
+
+$('#kbPwSaveBtn').addEventListener('click', () => {
+  const cur = $('#kbCurPw'), nw = $('#kbNewPw'), msg = $('#kbPwChangeMsg');
+  if (!cur || !nw || !msg) return;
+  if (cur.value !== kbPassword()) { msg.classList.remove('ok'); msg.textContent = 'Current password is incorrect.'; return; }
+  if (nw.value.length < 4)        { msg.classList.remove('ok'); msg.textContent = 'New password must be at least 4 characters.'; return; }
+  try { localStorage.setItem(KB_PW_KEY, nw.value); } catch {}
+  cur.value = ''; nw.value = '';
+  msg.classList.add('ok'); msg.textContent = 'Password updated.';
+});
+
 // ---------- final init ----------
 // Font prefs are defined further up as consts, so apply them here (after
 // their declarations) — calling applyDisplay() earlier would hit the
@@ -772,8 +1065,10 @@ $('#cfgPwSaveBtn').addEventListener('click', () => {
 loadDisplay();
 applyDisplay();
 applyConfigLock();
+applyKbLock();
 renderVoiceOptions('stt');
 renderVoiceOptions('tts');
+renderRateOptions();
 renderFontOptions();
 renderConfigMeta();
 refreshMicButton();

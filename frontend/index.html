@@ -21,6 +21,7 @@
   <button class="tab active" data-tab="dashboard" role="tab" aria-selected="true">DASHBOARD</button>
   <button class="tab"        data-tab="bot"       role="tab" aria-selected="false">BOT</button>
   <button class="tab"        data-tab="config"    role="tab" aria-selected="false">CONFIG</button>
+  <button class="tab"        data-tab="kb"        role="tab" aria-selected="false">KNOWLEDGE BASE</button>
 </nav>
 
 <main class="stage">
@@ -141,6 +142,10 @@
 
   <!-- ============================ CHAT (BOT) VIEW ============================ -->
   <section class="view view-chat" id="viewBot">
+    <div class="chat-toolbar">
+      <button class="chat-tool" id="stopBtn" title="Stop the current answer and any speech">&#9632; Stop</button>
+      <button class="chat-tool" id="resetBtn" title="Clear the conversation and start over">&#8635; Reset conversation</button>
+    </div>
     <div class="chat-scroll" id="chatScroll">
       <div class="chat-bubble bot">
         <div class="bubble-body">Hi! I'm the EV Lab Chatbot. Ask me anything about electric vehicles. The first answer takes ~30 s while I warm up.</div>
@@ -184,6 +189,12 @@
       </div>
 
       <div class="cfg-card">
+        <h2 class="cfg-title">Speech rate</h2>
+        <p class="cfg-help">Speed of the offline (server) voice — slower is clearer. (Online gTTS uses a fixed rate.)</p>
+        <div class="cfg-options" id="ttsRateOptions"></div>
+      </div>
+
+      <div class="cfg-card">
         <h2 class="cfg-title">Text size</h2>
         <p class="cfg-help">Scales all on-screen text — dashboard, chat, buttons, and config. Saved on this device.</p>
         <div class="cfg-options" id="fontSizeOptions">
@@ -224,7 +235,65 @@
     </div>
   </section>
 
+  <!-- ============================ KNOWLEDGE BASE VIEW ============================ -->
+  <section class="view view-config view-kb" id="viewKb">
+    <div class="config-lock" id="kbLock">
+      <div class="lock-card">
+        <div class="lock-icon">🔐</div>
+        <h2 class="cfg-title">Knowledge base locked</h2>
+        <p class="cfg-help">Enter the admin password to view and add questions.</p>
+        <input type="password" id="kbPwInput" class="cfg-input" placeholder="Admin password" autocomplete="off">
+        <button class="action" id="kbUnlockBtn">Unlock</button>
+        <div class="lock-error" id="kbPwError"></div>
+      </div>
+    </div>
+
+    <div class="config-scroll" id="kbContent" hidden>
+      <div class="kb-head">
+        <h2 class="cfg-title">Question bank (<span id="kbCount">0</span>)</h2>
+        <div class="kb-head-actions">
+          <button class="action" id="kbAddBtn">+ Add question</button>
+          <button class="action" id="kbDownloadBtn">&#8615; Download HTML</button>
+        </div>
+      </div>
+      <input type="text" id="kbSearch" class="cfg-input" placeholder="Search questions…" autocomplete="off">
+      <div class="kb-list" id="kbList"></div>
+
+      <div class="cfg-card">
+        <h2 class="cfg-title">Change knowledge-base password</h2>
+        <p class="cfg-help">Separate from the Config password. Saved on this device.</p>
+        <div class="cfg-pw-fields">
+          <input type="password" id="kbCurPw" class="cfg-input" placeholder="Current password" autocomplete="off">
+          <input type="password" id="kbNewPw" class="cfg-input" placeholder="New password" autocomplete="off">
+          <button class="action" id="kbPwSaveBtn">Save</button>
+        </div>
+        <div class="lock-error" id="kbPwChangeMsg"></div>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<!-- Add-question modal (Knowledge Base) -->
+<div class="modal-overlay" id="kbModal" hidden>
+  <div class="modal-card">
+    <h2 class="cfg-title">Add a question</h2>
+    <label class="kb-field"><span>Question</span>
+      <textarea id="kbQ" class="cfg-input kb-textarea" rows="2" placeholder="The question…"></textarea></label>
+    <label class="kb-field"><span>Answer</span>
+      <textarea id="kbA" class="cfg-input kb-textarea" rows="4" placeholder="The vetted answer…"></textarea></label>
+    <label class="kb-field"><span>Reference</span>
+      <input id="kbR" class="cfg-input" placeholder="e.g. EV Guide, p.12" autocomplete="off"></label>
+    <div class="modal-actions">
+      <button class="action" id="kbCancelBtn">Cancel</button>
+      <button class="action" id="kbSaveBtn">Add</button>
+    </div>
+    <div class="lock-error" id="kbAddMsg"></div>
+  </div>
+</div>
+
+<!-- switching-mode command confirmation / error toast -->
+<div class="switch-toast" id="switchToast"></div>
 
 <!-- ============================ SHARED INPUT ROW ============================ -->
 <footer class="input-bar">

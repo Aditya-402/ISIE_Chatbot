@@ -140,16 +140,22 @@ class GoogleSTT(_STTBackend):
         if not self.available:
             return ""
         import speech_recognition as sr
-        audio = sr.AudioData(pcm_bytes,
-                             sample_rate=config.MIC_SAMPLE_RATE,
-                             sample_width=2)  # int16 = 2 bytes
-        recogniser = sr.Recognizer()
         try:
-            return recogniser.recognize_google(audio)
+            audio = sr.AudioData(pcm_bytes,
+                                 sample_rate=config.MIC_SAMPLE_RATE,
+                                 sample_width=2)   # int16 = 2 bytes
+            return sr.Recognizer().recognize_google(audio)
         except sr.UnknownValueError:
-            return ""
+            return ""                                  # speech simply wasn't understood
         except sr.RequestError as e:
-            self.error = f"Google API error: {e}"
+            self.error = f"Google STT network/quota error: {e}"
+            return ""
+        except OSError as e:
+            # e.g. the FLAC encoder is missing on ARM — `apt-get install flac`.
+            self.error = f"audio conversion failed (is 'flac' installed?): {e}"
+            return ""
+        except Exception as e:
+            self.error = f"Google STT failed: {e}"
             return ""
 
 
@@ -180,11 +186,18 @@ class Pyttsx3TTS(_TTSBackend):
         self._lock = threading.Lock()
         self.available = False
         self.error = None
+        self.rate = getattr(config, "PYTTSX3_RATE", 160)   # words/min; set live from Config
         try:
             import pyttsx3  # noqa
             self.available = True
         except Exception as e:
             self.error = f"pyttsx3 not installed: {e}"
+
+    def _apply_rate(self, engine):
+        try:
+            engine.setProperty("rate", int(self.rate))
+        except Exception:
+            pass
 
     def speak(self, text: str):
         if not self.available or not text:
@@ -195,6 +208,7 @@ class Pyttsx3TTS(_TTSBackend):
         with self._lock:
             try:
                 engine = pyttsx3.init()
+                self._apply_rate(engine)
                 engine.say(text)
                 engine.runAndWait()
                 engine.stop()
@@ -210,6 +224,7 @@ class Pyttsx3TTS(_TTSBackend):
         with self._lock:
             try:
                 engine = pyttsx3.init()
+                self._apply_rate(engine)
                 engine.save_to_file(text, str(tmp))
                 engine.runAndWait()
                 engine.stop()

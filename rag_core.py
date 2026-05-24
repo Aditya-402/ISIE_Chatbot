@@ -8,6 +8,8 @@ only what's needed to serve answers, no evaluation/judging code.
 import json
 import pickle
 import re
+import threading
+import time
 from typing import Optional
 
 import numpy as np
@@ -24,6 +26,32 @@ _BM25_TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9\-]*")
 
 def _tokenize(text: str) -> list[str]:
     return _BM25_TOKEN_RE.findall(text.lower())
+
+
+# --- switching-mode command vocabulary (LLM intent classifier) -------------
+SWITCH_CHANNELS = ("ignition", "headlight", "all_lamp", "hazard",
+                   "left_ind", "right_ind", "brake", "horn", "reverse")
+
+_CMD_SYS = (
+    "You map a spoken vehicle command to ONE control and an action.\n"
+    "Controls: ignition, headlight, all_lamp, hazard, left_ind, right_ind, brake, horn, reverse.\n"
+    "Reply with EXACTLY one line, nothing else, one of:\n"
+    "  <control>:on\n"
+    "  <control>:off\n"
+    "  none:unknown        (gibberish or unclear)\n"
+    "  none:not_a_control  (a real request but not one of these controls)\n"
+    "Synonyms: engine=ignition; lights/headlamp=headlight; blinker/turn signal=left_ind or "
+    "right_ind; honk=horn:on; back up/reverse=reverse:on; apply/press brake=brake:on; "
+    "release brake=brake:off.\n"
+    "Examples: 'start the engine'->ignition:on  'kill the engine'->ignition:off  "
+    "'apply the brake'->brake:on  'do not apply the brake'->brake:off  "
+    "'indicate left'->left_ind:on  'honk'->horn:on  'back up'->reverse:on  "
+    "'what is regen braking'->none:not_a_control  'asdf'->none:unknown"
+)
+
+_CMD_RE = re.compile(
+    r"(ignition|headlight|all_lamp|hazard|left_ind|right_ind|brake|horn|reverse|none)"
+    r":(on|off|unknown|not_a_control)")
 
 
 class RAGEngine:
@@ -69,6 +97,19 @@ class RAGEngine:
                 print(f"[rag] cache disabled (load failed: {e})")
                 self.cache_index = None
 
+        # Editable bank (Knowledge Base tab): full Q&A records + a lock that
+        # guards concurrent add-vs-search on the shared cache index.
+        self._bank_lock = threading.Lock()
+        self.bank_data = {"qa": []}
+        self.bank = []
+        try:
+            with open(config.BANK_JSON, encoding="utf-8") as f:
+                self.bank_data = json.load(f)
+            self.bank = self.bank_data.setdefault("qa", [])
+            print(f"[rag] bank: {len(self.bank)} Q&As ({config.BANK_JSON.name})")
+        except Exception as e:
+            print(f"[rag] bank load failed: {e}")
+
     # --- cache --------------------------------------------------------------
 
     def cache_lookup(self, question: str) -> Optional[dict]:
@@ -77,13 +118,105 @@ class RAGEngine:
         if self.cache_index is None:
             return None
         vec = self.embedder.encode([question], normalize_embeddings=True).astype(np.float32)
-        sims, ids = self.cache_index.search(vec, 1)
-        score = float(sims[0][0])
-        if score >= config.T_CACHE:
-            hit = dict(self.cache_map[int(ids[0][0])])
+        with self._bank_lock:                       # guard vs. a concurrent add_qa()
+            sims, ids = self.cache_index.search(vec, 1)
+            score = float(sims[0][0])
+            hit = dict(self.cache_map[int(ids[0][0])]) if score >= config.T_CACHE else None
+        if hit is not None:
             hit["_cache_score"] = round(score, 4)
             return hit
         return None
+
+    # --- knowledge base: list + live add ------------------------------------
+
+    def list_qa(self) -> list:
+        """Lightweight view of every bank Q&A for the Knowledge Base browser."""
+        with self._bank_lock:
+            out = []
+            for e in self.bank:
+                src = e.get("source") or {}
+                ref = str(src.get("book") or "")
+                page = src.get("page")
+                if page not in (None, ""):
+                    ref = f"{ref}, p.{page}" if ref else f"p.{page}"
+                out.append({"id": e.get("id"), "question": e.get("question", ""),
+                            "answer": e.get("answer", ""), "topic": e.get("topic"),
+                            "reference": ref,
+                            "deletable": str(e.get("id", "")).startswith("user-")})
+            return out
+
+    @staticmethod
+    def _is_user_added(qa_id: str) -> bool:
+        return str(qa_id or "").startswith("user-")
+
+    def delete_qa(self, qa_id: str) -> dict:
+        """Delete a USER-ADDED question (id 'user-...') from the bank JSON and the
+        live cache. Base questions are protected and cannot be deleted. Thread-safe."""
+        qa_id = (qa_id or "").strip()
+        if not self._is_user_added(qa_id):
+            raise ValueError("only user-added questions can be deleted")
+        with self._bank_lock:
+            idx = next((i for i, e in enumerate(self.bank) if e.get("id") == qa_id), None)
+            if idx is None:
+                raise ValueError(f"question '{qa_id}' not found")
+            if not self._is_user_added(self.bank[idx].get("id")):   # defence-in-depth
+                raise ValueError("only user-added questions can be deleted")
+            removed = self.bank.pop(idx)
+            with open(config.BANK_JSON, "w", encoding="utf-8") as f:
+                json.dump(self.bank_data, f, indent=2, ensure_ascii=False)
+
+            if self.cache_index is not None:
+                pos = next((i for i, m in enumerate(self.cache_map)
+                            if m.get("qa_id") == qa_id), None)
+                if pos is not None:
+                    n = self.cache_index.ntotal
+                    vecs = self.cache_index.reconstruct_n(0, n)   # (n, d) float32
+                    keep = [i for i in range(n) if i != pos]
+                    new_idx = faiss.IndexFlatIP(vecs.shape[1])
+                    if keep:
+                        new_idx.add(vecs[keep])
+                    self.cache_index = new_idx
+                    del self.cache_map[pos]
+                    faiss.write_index(self.cache_index, str(config.CACHE_INDEX))
+                    with open(config.CACHE_MAP, "w", encoding="utf-8") as f:
+                        json.dump(self.cache_map, f, indent=2, ensure_ascii=False)
+            return removed
+
+    def add_qa(self, question: str, answer: str, reference: str = "") -> dict:
+        """Append a Q&A to the bank JSON AND the live cache, persisting both to
+        disk so it survives restarts. Thread-safe. Returns the new entry."""
+        question = (question or "").strip()
+        answer = (answer or "").strip()
+        reference = (reference or "").strip()
+        if not question or not answer:
+            raise ValueError("question and answer are required")
+        with self._bank_lock:
+            nums = [int(str(e.get("id", "")).split("-")[-1])
+                    for e in self.bank
+                    if str(e.get("id", "")).startswith("user-")
+                    and str(e.get("id", "")).split("-")[-1].isdigit()]
+            new_id = f"user-{(max(nums) + 1) if nums else 1:03d}"
+            entry = {
+                "id": new_id, "question": question, "answer": answer,
+                "topic": "user-added",
+                "source": {"book": reference or "User added", "page": None},
+                "added": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }
+            self.bank.append(entry)
+            with open(config.BANK_JSON, "w", encoding="utf-8") as f:
+                json.dump(self.bank_data, f, indent=2, ensure_ascii=False)
+
+            if self.cache_index is not None:
+                vec = self.embedder.encode([question], normalize_embeddings=True).astype(np.float32)
+                self.cache_index.add(vec)
+                self.cache_map.append({
+                    "qa_id": new_id, "question": question, "gold_answer": answer,
+                    "topic": "user-added", "source": entry["source"]["book"], "page": None,
+                })
+                faiss.write_index(self.cache_index, str(config.CACHE_INDEX))
+                with open(config.CACHE_MAP, "w", encoding="utf-8") as f:
+                    json.dump(self.cache_map, f, indent=2, ensure_ascii=False)
+            return entry
 
     # --- retrieval ----------------------------------------------------------
 
@@ -234,6 +367,30 @@ class RAGEngine:
             "refused":         refused,
             "cache_hit":       False,
         }
+
+    # --- switching mode: free-form command -> control intent ---------------
+
+    def classify_command(self, utterance: str, states: dict = None) -> dict:
+        """Map a free-form command to ONE control + on/off via the LLM. Returns
+        {channel, action, error}. Deterministic: the LLM only emits a fixed token."""
+        states = states or {}
+        state_line = ", ".join(f"{c}={'on' if states.get(c) else 'off'}" for c in SWITCH_CHANNELS)
+        resp = self._ollama.chat(
+            model=config.LLM_MODEL,
+            messages=[{"role": "system", "content": _CMD_SYS},
+                      {"role": "user", "content": f"Current state: {state_line}\nCommand: {utterance}"}],
+            options={"temperature": 0, "num_predict": 12},
+        )
+        raw = resp["message"]["content"].strip().lower()
+        m = _CMD_RE.search(raw)
+        if not m:
+            return {"channel": None, "action": None, "error": "unknown", "raw": raw[:80]}
+        ch, act = m.group(1), m.group(2)
+        if ch == "none":
+            return {"channel": None, "action": None,
+                    "error": act if act in ("unknown", "not_a_control") else "unknown",
+                    "raw": raw[:80]}
+        return {"channel": ch, "action": act, "error": None, "raw": raw[:80]}
 
 
 # ---------------------------------------------------------------------------

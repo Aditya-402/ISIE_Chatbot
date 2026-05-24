@@ -56,6 +56,7 @@ if command -v apt-get >/dev/null 2>&1; then
         python3-venv python3-pip \
         portaudio19-dev libportaudio2 \
         espeak-ng \
+        flac \
         ffmpeg libsdl2-mixer-2.0-0 \
         swig python3-dev build-essential liblgpio-dev \
       || warn "apt step failed — continuing (install espeak-ng etc. manually)."

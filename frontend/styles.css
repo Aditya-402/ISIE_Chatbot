@@ -126,6 +126,12 @@ body.ignition-on .title-bar { background: var(--title-on); }
 }
 .view.active { display: flex; opacity: 1; }
 
+/* The HTML5 `hidden` attribute must win over component display rules (e.g. the
+   .config-scroll display:flex below) so password-gated content stays hidden
+   until unlocked. Without this, [hidden] is overridden and the config details
+   leak before the password is entered. */
+[hidden] { display: none !important; }
+
 /* ---------- dashboard view ---------- */
 .cluster {
   height: 56%;
@@ -196,7 +202,9 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
               background 180ms ease, color 120ms ease, opacity 120ms ease;
   min-height: 0;
 }
-.ctl:hover:not(:disabled) { background: var(--btn-grad-h); }
+/* Hover highlight only applies to OFF buttons — an ON button keeps its status
+   colour (amber/red/green) while hovered, instead of reverting to blue. */
+.ctl:not(.on):hover:not(:disabled) { background: var(--btn-grad-h); }
 .ctl:active:not(:disabled) { transform: scale(0.97); }
 .ctl.on {
   background: var(--btn-on-grad);
@@ -223,6 +231,28 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
   box-shadow: var(--shadow-card);
   padding: 14px 14px;
 }
+.chat-toolbar {
+  flex: 0 0 auto;
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-bottom: 10px;
+}
+.chat-tool {
+  appearance: none; cursor: pointer;
+  height: 32px; padding: 0 12px;
+  border-radius: 10px;
+  font: 700 calc(11px * var(--fs))/1 var(--font); letter-spacing: 0.6px;
+  color: var(--text);
+  background: linear-gradient(180deg, #1c3370 0%, #0e1b3a 100%);
+  border: 1px solid var(--line);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 150ms ease, transform 80ms ease, opacity 120ms ease;
+}
+.chat-tool:hover    { background: linear-gradient(180deg, #24408a 0%, #14275a 100%); }
+.chat-tool:active   { transform: scale(0.97); }
+.chat-tool:disabled { opacity: 0.4; cursor: not-allowed; }
+#stopBtn { border-color: rgba(230,57,70,0.5); color: #ffd9dd; }
+#stopBtn:hover { background: linear-gradient(180deg, #5a1d22 0%, #3b1216 100%); }
+
 .chat-scroll {
   flex: 1; overflow-y: auto;
   display: flex; flex-direction: column; gap: 10px;
@@ -429,6 +459,81 @@ body.ignition-on .horizon { fill: var(--good); filter: drop-shadow(0 0 8px rgba(
 .action.disabled {
   opacity: 0.4; cursor: not-allowed; filter: grayscale(0.6);
 }
+
+/* ---------- knowledge base ---------- */
+.kb-head {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 8px;
+}
+.kb-head-actions { display: flex; gap: 8px; }
+#kbSearch { flex: 0 0 auto; margin-bottom: 8px; }
+.kb-list {
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  padding-right: 6px;
+  scrollbar-width: thin; scrollbar-color: #2a3f6f transparent;
+}
+.kb-list::-webkit-scrollbar { width: 6px; }
+.kb-list::-webkit-scrollbar-thumb { background: #2a3f6f; border-radius: 4px; }
+.kb-item {
+  background: linear-gradient(180deg, #142555 0%, #0a1738 100%);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px;
+}
+.kb-item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kb-item .kb-q { font-weight: 700; color: #fff; font-size: calc(13px * var(--fs)); }
+.kb-badge-added {
+  display: inline-block; margin-left: 8px; vertical-align: middle;
+  font-size: calc(9px * var(--fs)); font-weight: 700; letter-spacing: 1px;
+  padding: 1px 6px; border-radius: 999px;
+  background: rgba(57,211,83,0.18); color: var(--good); border: 1px solid rgba(57,211,83,0.4);
+}
+.kb-del {
+  appearance: none; cursor: pointer; flex: 0 0 auto;
+  width: 28px; height: 28px; border-radius: 8px;
+  border: 1px solid rgba(230,57,70,0.5); background: rgba(230,57,70,0.15);
+  color: #ff8a93; font-weight: 700; line-height: 1;
+}
+.kb-del:hover { background: rgba(230,57,70,0.32); }
+.kb-item .kb-a { margin-top: 4px; color: var(--text-dim); font-size: calc(12px * var(--fs)); white-space: pre-wrap; }
+.kb-item .kb-ref { margin-top: 4px; font-size: calc(11px * var(--fs)); color: var(--accent-2); }
+.kb-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;
+            font-size: calc(12px * var(--fs)); color: var(--text-dim); }
+.kb-textarea { height: auto; padding: 8px 12px; resize: vertical;
+               font: calc(13px * var(--fs))/1.4 var(--font); }
+
+/* modal overlay (Add question) */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: linear-gradient(180deg, #142555 0%, #0a1738 100%);
+  border: 1px solid var(--line); border-radius: 16px;
+  padding: 20px 22px; width: min(520px, 92%);
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-card);
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+
+/* ---------- switching-mode toast (command confirmation / error) ---------- */
+.switch-toast {
+  position: fixed; left: 50%; bottom: 76px; z-index: 40;
+  transform: translateX(-50%) translateY(10px);
+  max-width: 80%; padding: 10px 18px; border-radius: 12px;
+  background: linear-gradient(180deg, #142555 0%, #0a1738 100%);
+  border: 1px solid var(--line); color: var(--text);
+  font-size: calc(13px * var(--fs)); font-weight: 600;
+  box-shadow: var(--shadow-card);
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.switch-toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+.switch-toast.ok      { border-color: rgba(57,211,83,0.5); }
+.switch-toast.blocked { border-color: rgba(255,194,76,0.6); color: #ffe2a8; }
+.switch-toast.error   { border-color: rgba(230,57,70,0.6); color: #ffd9dd; }
 
 /* ---------- input bar ---------- */
 .input-bar {

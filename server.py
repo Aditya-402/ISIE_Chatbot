@@ -30,6 +30,7 @@ from pydantic import BaseModel
 import config
 import hardware
 import voice
+import bank_html
 from rag_core import RAGEngine
 
 
@@ -295,6 +296,7 @@ class AppState:
     tts_backends: dict = {}
     stt_mode: str = config.DEFAULT_STT       # "off" | "vosk" | "google"
     tts_mode: str = config.DEFAULT_TTS       # "off" | "browser" | "pyttsx3" | "gtts"
+    tts_rate: int = config.PYTTSX3_RATE      # offline (pyttsx3) speech rate, words/min
     ready: bool = False
     error: Optional[str] = None
 
@@ -377,6 +379,154 @@ async def post_ask(body: AskBody):
     return out
 
 
+# --- Knowledge base (question bank: browse + live add + downloadable handout) -
+
+_html_lock = threading.Lock()
+
+
+def _regen_bank_html():
+    """Background-regenerate the student HTML handout from the bank JSON."""
+    def _run():
+        try:
+            with _html_lock:
+                n = bank_html.render_to_file()
+            log.info(f"bank HTML regenerated ({n} questions)")
+        except Exception as e:
+            log.error(f"bank HTML regen failed: {e}")
+    threading.Thread(target=_run, daemon=True, name="bank-html").start()
+
+
+class BankAddBody(BaseModel):
+    question: str
+    answer: str
+    reference: str = ""
+
+
+@app.get("/api/bank/list")
+async def get_bank_list():
+    if not astate.ready or astate.rag is None:
+        raise HTTPException(503, "engine still warming up")
+    items = await asyncio.to_thread(astate.rag.list_qa)
+    return {"count": len(items), "items": items}
+
+
+@app.post("/api/bank/add")
+async def post_bank_add(body: BankAddBody):
+    if not astate.ready or astate.rag is None:
+        raise HTTPException(503, "engine still warming up")
+    try:
+        entry = await asyncio.to_thread(astate.rag.add_qa,
+                                        body.question, body.answer, body.reference)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    _regen_bank_html()                      # refresh the downloadable handout in the background
+    return {"ok": True, "entry": entry, "count": len(astate.rag.bank)}
+
+
+@app.get("/api/bank/download")
+async def get_bank_download():
+    if not config.BANK_HTML.exists():       # first download before any add
+        await asyncio.to_thread(bank_html.render_to_file)
+    return FileResponse(config.BANK_HTML, media_type="text/html",
+                        filename="question_bank.html")
+
+
+@app.delete("/api/bank/{qa_id}")
+async def delete_bank(qa_id: str):
+    # Only user-added questions (id 'user-...') are deletable; the base bank is
+    # protected in rag_core.delete_qa() regardless of what the client sends.
+    if not astate.ready or astate.rag is None:
+        raise HTTPException(503, "engine still warming up")
+    try:
+        removed = await asyncio.to_thread(astate.rag.delete_qa, qa_id)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    _regen_bank_html()
+    return {"ok": True, "removed_id": removed.get("id"), "count": len(astate.rag.bank)}
+
+
+# --- Switching / IoT mode: free-form command -> control --------------------
+# The LLM classifies the utterance to one channel + on/off; the server enforces
+# the ignition gate + channel type (toggle / momentary brake / trigger) and
+# returns a templated confirmation message. Visual confirmation is the button
+# state itself (updated live via /ws/state); the message is for speech + errors.
+
+_SWITCH_LABELS = {
+    "ignition": "Engine", "headlight": "Headlights", "all_lamp": "All-lamp mode",
+    "hazard": "Hazard lights", "left_ind": "Left indicator", "right_ind": "Right indicator",
+    "brake": "Brake", "horn": "Horn", "reverse": "Reverse",
+}
+_TOGGLE_CHANNELS = ("headlight", "all_lamp", "hazard", "left_ind", "right_ind")
+_TRIGGER_CHANNELS = ("horn", "reverse")
+_GATE_MSG = "Ignition is off — start the engine first."
+
+
+def _switch_result(ok, level, message):
+    return {"ok": ok, "level": level, "message": message, **vstate.snapshot()}
+
+
+class SwitchBody(BaseModel):
+    text: str
+
+
+@app.post("/api/switch")
+async def post_switch(body: SwitchBody):
+    if not astate.ready or astate.rag is None:
+        raise HTTPException(503, "engine still warming up")
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(400, "empty command")
+
+    intent = await asyncio.to_thread(astate.rag.classify_command, text,
+                                     vstate.snapshot()["channels"])
+    ch, act, err = intent.get("channel"), intent.get("action"), intent.get("error")
+
+    if err == "not_a_control":
+        return _switch_result(False, "error", "That isn't one of the vehicle controls.")
+    if err or ch is None:
+        return _switch_result(False, "error", "Sorry, I didn't catch a valid command.")
+
+    label = _SWITCH_LABELS.get(ch, ch)
+    desired = (act == "on")
+    states = vstate.snapshot()["channels"]
+    ign = states["ignition"]
+
+    # Trigger channels: "on" fires it; "off" does nothing.
+    if ch in _TRIGGER_CHANNELS:
+        if not desired:
+            return _switch_result(True, "ok", f"{label} is momentary — nothing to turn off.")
+        if not ign:
+            return _switch_result(False, "blocked", _GATE_MSG)
+        drive(ch, "press")
+        return _switch_result(True, "ok",
+                              "Horn sounded." if ch == "horn" else "Reverse engaged for 5 seconds.")
+
+    # Ignition: the master gate.
+    if ch == "ignition":
+        if ign == desired:
+            return _switch_result(True, "ok", f"Engine already {'on' if desired else 'off'}.")
+        drive("ignition", "toggle")
+        return _switch_result(True, "ok", f"Engine {'started' if desired else 'stopped'}.")
+
+    # Everything else needs ignition on.
+    if not ign:
+        if not desired:
+            return _switch_result(True, "ok", f"{label} already off.")
+        return _switch_result(False, "blocked", _GATE_MSG)
+
+    if ch == "brake":
+        drive("brake", "press" if desired else "release")
+        return _switch_result(True, "ok", "Brake applied." if desired else "Brake released.")
+
+    # Steady toggle channels: set to the desired state.
+    if states.get(ch) == desired:
+        return _switch_result(True, "ok", f"{label} already {'on' if desired else 'off'}.")
+    res = drive(ch, "toggle")
+    if res.get("ignored"):
+        return _switch_result(False, "blocked", _GATE_MSG)
+    return _switch_result(True, "ok", f"{label} {'on' if desired else 'off'}.")
+
+
 # --- Transcribe --------------------------------------------------------
 # Browser captures via Web Audio API, downsamples to 16 kHz int16 PCM,
 # POSTs raw bytes. No ffmpeg, no format negotiation - the simplest path.
@@ -429,6 +579,7 @@ async def get_tts(text: str = "", backend: str = ""):
 class VoiceConfigBody(BaseModel):
     stt: Optional[str] = None
     tts: Optional[str] = None
+    tts_rate: Optional[int] = None
 
 
 def _backend_info(backends: dict) -> dict:
@@ -447,6 +598,7 @@ async def get_voice_config():
         "tts_options": ["off", "browser", "pyttsx3", "gtts"],
         "stt_backends": _backend_info(astate.stt_backends),
         "tts_backends": _backend_info(astate.tts_backends),
+        "tts_rate": astate.tts_rate,
         "ready": astate.ready,
     }
 
@@ -461,7 +613,13 @@ async def post_voice_config(body: VoiceConfigBody):
         if body.tts not in _VALID_TTS:
             raise HTTPException(400, f"invalid tts '{body.tts}'")
         astate.tts_mode = body.tts
-    return {"stt": astate.stt_mode, "tts": astate.tts_mode}
+    if body.tts_rate is not None:
+        rate = max(80, min(300, int(body.tts_rate)))
+        astate.tts_rate = rate
+        be = astate.tts_backends.get("pyttsx3")
+        if be is not None:
+            be.rate = rate
+    return {"stt": astate.stt_mode, "tts": astate.tts_mode, "tts_rate": astate.tts_rate}
 
 
 # --- WebSocket ---------------------------------------------------------

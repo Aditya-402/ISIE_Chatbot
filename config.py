@@ -67,6 +67,11 @@ CACHE_INDEX   = RAG_DATA_DIR / "faiss.cache.index"
 CACHE_MAP     = RAG_DATA_DIR / "cache_map.json"
 T_CACHE       = 0.92
 
+# Editable source bank (added to live from the Knowledge Base tab) + the
+# student HTML handout regenerated whenever a question is added.
+BANK_JSON = ROOT / "question_bank" / "qa_bank_all.json"
+BANK_HTML = ROOT / "question_bank" / "question_bank.html"
+
 # --- LLM generation -------------------------------------------------------
 
 MAX_ANSWER_WORDS = 40
@@ -94,6 +99,10 @@ DEFAULT_STT = "vosk"          # one of: "off", "vosk", "google"
 # so on the Pi default to server-side pyttsx3 (espeak-ng); browser on Windows.
 # Either way it's switchable live from the Config tab.
 DEFAULT_TTS = "browser" if SIM_MODE else "pyttsx3"   # "off"|"browser"|"pyttsx3"|"gtts"
+
+# Offline (pyttsx3 / espeak) speech rate in words-per-minute. espeak's own
+# default (~200) sounds fast; lower = slower/clearer. Adjustable on the Config tab.
+PYTTSX3_RATE = 160
 
 MIC_SAMPLE_RATE = 16000        # Vosk requires 16 kHz mono
 MIC_CHANNELS    = 1

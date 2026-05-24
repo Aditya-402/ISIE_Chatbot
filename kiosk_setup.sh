@@ -67,10 +67,10 @@ echo "[4/5] labwc autostart ..."
 LABWC="$USER_HOME/.config/labwc"
 mkdir -p "$LABWC"
 cat > "$LABWC/autostart" <<EOF
-# Keep the standard Pi desktop running underneath, so Ctrl+Alt+X drops to a
-# usable desktop; the kiosk browser runs fullscreen on top.
-[ -f /etc/xdg/labwc/autostart ] && . /etc/xdg/labwc/autostart
-# EV Lab dashboard kiosk
+# EV Lab dashboard kiosk autostart (labwc).
+# labwc ALREADY runs /etc/xdg/labwc/autostart itself (the Pi panel + desktop),
+# so do NOT re-source it here or the panel/desktop launch twice. The kiosk
+# browser runs fullscreen on top; Ctrl+Alt+X drops to that desktop.
 $REPO/kiosk_chromium.sh &
 EOF
 chmod +x "$REPO/kiosk_chromium.sh" "$REPO/kiosk_exit.sh"

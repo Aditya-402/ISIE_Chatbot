@@ -28,13 +28,13 @@ import config
 #   read here is exactly what you plug into. (BCM GPIO in the comment for ref.)
 # ===========================================================================
 PIN_MAP: dict[str, str] = {
-    "ignition":  "BOARD12",   # GPIO18
-    "headlight": "BOARD16",   # GPIO23
-    "horn":      "BOARD18",   # GPIO24
-    "left_ind":  "BOARD22",   # GPIO25
-    "right_ind": "BOARD32",   # GPIO12
-    "brake":     "BOARD36",   # GPIO16
-    "reverse":   "BOARD40",   # GPIO21
+    "ignition":  "BOARD8",    # GPIO14  (default UART TXD)
+    "headlight": "BOARD10",   # GPIO15  (default UART RXD)
+    "horn":      "BOARD12",   # GPIO18
+    "left_ind":  "BOARD16",   # GPIO23
+    "right_ind": "BOARD18",   # GPIO24
+    "brake":     "BOARD22",   # GPIO25
+    "reverse":   "BOARD24",   # GPIO8   (default SPI CE0)
 }
 
 # Relays are active-LOW by default (ON when the pin goes LOW). List a channel

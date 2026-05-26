@@ -89,6 +89,22 @@
       "publisher": "IEA",
       "source_file": "PolicyExplorer2024.pdf",
       "qa_count": 50
+    },
+    {
+      "slug": "ragdrive",
+      "title": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+      "authors": "ISIE India / Neurality Tech",
+      "publisher": "ISIE India",
+      "source_file": "EV RAGDRIVE Intelligent Telematics Questionsn25.docx",
+      "qa_count": 25
+    },
+    {
+      "slug": "ragdrive-eng",
+      "title": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+      "authors": "ISIE India / Neurality Tech",
+      "publisher": "ISIE India",
+      "source_file": "EV RAGDRIVE Intelligent Telematics Engineering Questions N50.docx",
+      "qa_count": 50
     }
   ],
   "topics": [
@@ -111,7 +127,8 @@
     "Global EV Market & Outlook (IEA 2024)",
     "Electric Vehicle Knowledge Guide",
     "EV Basics (US DOE)",
-    "Global EV Policy Explorer (IEA 2024)"
+    "Global EV Policy Explorer (IEA 2024)",
+    "EV RAGDRIVE Telematics Workbench"
   ],
   "schema": {
     "id": "string, e.g. w-hist-001 (topic-prefix + 3-digit)",
@@ -14127,6 +14144,1056 @@
         "page": 30
       },
       "evidence_quote": "Net zero greenhouse gas emissions in the transport sector by 2050"
+    },
+    {
+      "id": "wb-rdt-001",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the purpose of the EV RAGDRIVE Intelligent Telematics Workbench?",
+      "answer": "The EV RAGDRIVE Intelligent Telematics Workbench is designed for practical learning and demonstration of Electric Vehicle (EV) systems. It helps engineering students understand the working of EV electronics, telematics, IoT communication, motor control, and vehicle diagnostics in a real-time environment. The workbench provides hands-on training for testing, monitoring, and analysing EV components and communication systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 1",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-002",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Which components are used in this workbench for EV telematics demonstration?",
+      "answer": "The major components used in the EV telematics workbench include:\n• Motor Controller Unit (MCU)\n• Battery Pack\n• Ammeter and Voltmeter\n• Accelerator Pedal\n• Headlights and Indicators\n• Horn Circuit\n• Hazard Switch\n• Brake Cut-off System\n• IoT/SLM Module\n• Display Unit\n• Wiring Harness\n• Sensors and CAN Communication System\nThese components help demonstrate real-time EV operation and diagnostics.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 2",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-003",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the function of the motor controller unit in this setup?",
+      "answer": "The Motor Controller Unit (MCU) controls the operation of the electric motor by regulating voltage and current supplied from the battery. It receives signals from the accelerator pedal and sensors to control:\n• Motor speed\n• Torque\n• Direction of rotation\n• Acceleration and deceleration\nThe controller also provides protection against overcurrent, overheating, and short circuits.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 3",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-004",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Why is a voltmeter used in the workbench?",
+      "answer": "A voltmeter is used to measure the voltage of the battery and electrical circuits in the EV system. It helps students monitor:\n• Battery voltage level\n• Power supply condition\n• Voltage fluctuations\n• System performance\nVoltage monitoring is important for safe and efficient operation of EV systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 4",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-005",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What does the ammeter measure in the EV system?",
+      "answer": "The ammeter measures the electric current flowing through the EV circuit. It helps analyse:\n• Battery current consumption\n• Motor load current\n• Charging and discharging current\n• Energy usage efficiency\nIt is an important instrument for understanding power consumption in EV systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 5",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-006",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Explain the working of the horn circuit in this workbench.",
+      "answer": "The horn circuit operates when the horn switch is pressed. The switch completes the electrical circuit, allowing current to flow from the battery to the horn.\nThe horn converts electrical energy into sound energy using an electromagnetic mechanism. The circuit may also use a relay for safe operation and high-current switching.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 6",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-007",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the purpose of the headlight switch?",
+      "answer": "The headlight switch is used to control the ON and OFF operation of the vehicle headlights. It allows the user to activate lighting systems for visibility and safety during driving conditions.\nThe switch controls electrical power flow from the battery to the headlight circuit.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 7",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-008",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "How do left and right indicators operate in the system?",
+      "answer": "Left and right indicators operate using flasher relay circuits. When the indicator switch is activated:\n• Electrical current flows to the selected indicator lamps\n• The flasher relay repeatedly opens and closes the circuit\n• This creates the blinking effect of indicators\nIndicators are used for directional signaling and road safety.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 8",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-009",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the function of the hazard switch?",
+      "answer": "The hazard switch activates all left and right indicators simultaneously. It is used during emergency situations or vehicle breakdowns to warn nearby vehicles.\nThe hazard system improves road safety by providing visual warning signals.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 9",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-010",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Why is the brake cut feature important in EVs?",
+      "answer": "The brake cut-off feature disconnects motor power whenever brakes are applied. This prevents simultaneous acceleration and braking.\nAdvantages include:\n• Improved vehicle safety\n• Better braking control\n• Reduced motor stress\n• Prevention of accidental acceleration\nThis feature is very important in electric vehicles.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 10",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-011",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the role of the IoT setup/SLM module in telematics?",
+      "answer": "The IoT/SLM module is used for real-time communication and data transmission in the telematics system.\nFunctions include:\n• Vehicle monitoring\n• Data logging\n• Remote diagnostics\n• GPS tracking\n• Cloud communication\n• Predictive maintenance\nIt helps create smart and connected EV systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 11",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-012",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Explain the importance of telematics in electric vehicles.",
+      "answer": "Telematics systems collect and analyse real-time vehicle data for monitoring and diagnostics.\nBenefits include:\n• Vehicle tracking\n• Battery monitoring\n• Route optimization\n• Fault diagnosis\n• Fleet management\n• Remote vehicle monitoring\nTelematics improves vehicle efficiency, safety, and maintenance planning.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 12",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-013",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "How does the accelerator pedal communicate with the motor controller?",
+      "answer": "The accelerator pedal uses a throttle position sensor or Hall-effect sensor to detect pedal movement.\nThe sensor converts pedal position into electrical signals, which are sent to the Motor Controller Unit (MCU). Based on these signals, the controller regulates motor speed and torque.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 13",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-014",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What safety features are included in this workbench?",
+      "answer": "Safety features included in the workbench are:\n• Brake cut-off system\n• Fuse protection\n• Proper grounding\n• Overcurrent protection\n• Emergency power disconnection\n• Insulated wiring systems\nThese features ensure safe testing and operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 14",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-015",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is the function of the ignition switch in the EV system?",
+      "answer": "The ignition switch is used to activate or deactivate the EV electrical system.\nFunctions include:\n• Supplying power to controllers and circuits\n• Enabling motor operation\n• Activating display and telematics systems\nIt acts as the main control switch of the EV system.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 15",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-016",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "How can this workbench help engineering students in practical learning?",
+      "answer": "The workbench provides hands-on practical learning for engineering students.\nStudents can learn:\n• EV wiring systems\n• Motor control\n• Battery management\n• Telematics communication\n• Fault diagnosis\n• Sensor operation\n• Real-time monitoring\nIt improves technical skills and practical understanding of EV technology.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 16",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-017",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What are the advantages of using a telematics system in EVs?",
+      "answer": "Advantages of telematics systems include:\n• Real-time vehicle monitoring\n• GPS tracking\n• Predictive maintenance\n• Remote diagnostics\n• Improved fleet management\n• Better energy management\n• Reduced maintenance cost\nTelematics increases operational efficiency and vehicle reliability.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 17",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-018",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Explain the wiring flow between the controller and indicators.",
+      "answer": "The controller supplies electrical power to the indicator circuit through switches and flasher relays.\nWorking flow:\n• Indicator switch is activated\n• Current flows from battery to relay\n• Relay creates blinking signal\n• Power reaches left or right indicator lamps\nThis wiring arrangement ensures proper signaling operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 18",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-019",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What happens if the motor controller fails?",
+      "answer": "If the motor controller fails:\n• Motor operation stops\n• Vehicle acceleration is affected\n• Fault signals may appear on the display\n• Power distribution becomes unstable\nCommon causes include overheating, short circuits, sensor faults, or software failure.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 19",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-020",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "How is power supplied and distributed in this workbench?",
+      "answer": "Power is supplied from the battery pack to different EV components through wiring harnesses and control circuits.\nThe motor controller distributes power to:\n• Electric motor\n• Indicators\n• Horn\n• Headlights\n• Display systems\n• IoT modules\nFuses and relays provide protection during operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 20",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-021",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What is regenerative braking in EVs? Is it possible to integrate it with this setup?",
+      "answer": "Regenerative braking converts kinetic energy into electrical energy during braking and stores it back into the battery.\nYes, regenerative braking can be integrated into this setup by using:\n• Suitable motor controller\n• Regenerative-compatible motor\n• Battery charging control system\nIt improves energy efficiency and increases vehicle range.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 21",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-022",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "How can faults be diagnosed using this workbench?",
+      "answer": "Faults can be diagnosed by monitoring:\n• Voltage levels\n• Current flow\n• Sensor outputs\n• Controller signals\n• Fault codes\nStudents can use diagnostic tools and measuring instruments to identify wiring faults, sensor failures, and controller issues.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 22",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-023",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "What are the applications of CAN communication in EV systems?",
+      "answer": "CAN communication is used for data exchange between:\n• Battery Management System (BMS)\n• Motor Controller\n• Sensors\n• Display units\n• Telematics modules\nApplications include:\n• Real-time monitoring\n• Fault diagnostics\n• Vehicle communication\n• Data transmission\nCAN improves communication reliability and reduces wiring complexity.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 23",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-024",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Why are display units important in EV telematics?",
+      "answer": "Display units provide real-time information about vehicle operation.\nThey display:\n• Battery voltage\n• Current consumption\n• Vehicle speed\n• Fault alerts\n• Temperature readings\n• GPS and telematics data\nDisplay systems improve monitoring and user interaction.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 24",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "wb-rdt-025",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "basic",
+      "question": "Explain the complete working process of this EV workbench from power ON to motor operation.",
+      "answer": "The ignition switch is turned ON.\nBattery power is supplied to the control circuits.\nThe Motor Controller Unit initializes system operation.\nSensors and telematics modules start communication through CAN protocol.\nThe accelerator pedal sends throttle signals to the controller.\nThe controller regulates voltage and current supplied to the motor.\nThe motor converts electrical energy into mechanical rotation.\nDisplay units show real-time operational parameters.\nSafety systems continuously monitor voltage, current, and faults during operation.\nThis process demonstrates complete EV system functionality in real time.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Workbench — Q&A Set (1-25)",
+        "chapter": "Workbench Q&A",
+        "section": "Question No. 25",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-001",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the architecture of an Electric Vehicle Telematics System.",
+      "answer": "The architecture of an Electric Vehicle (EV) telematics system is designed to collect, process, transmit, and monitor vehicle data in real time. It mainly consists of sensors, Electronic Control Units (ECUs), communication networks, cloud servers, and user interfaces.\nIn an EV, sensors continuously monitor important parameters such as battery voltage, current, temperature, motor speed, vehicle location, and energy consumption. These sensors send data to the Electronic Control Units (ECUs) through the CAN (Controller Area Network) protocol.\nThe Telematics Control Unit (TCU) processes this data and transmits it to cloud servers using IoT technologies such as GSM, Wi-Fi, or 4G/5G networks. The cloud platform stores and analyses the data for monitoring and diagnostics.\nFinally, the processed information is displayed to users through mobile applications, dashboards, or web interfaces. Telematics systems help in vehicle tracking, predictive maintenance, battery monitoring, remote diagnostics, and fleet management.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 1",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-002",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the role of the Motor Controller Unit (MCU) in EVs?",
+      "answer": "The Motor Controller Unit (MCU) is one of the most important components in an Electric Vehicle. Its main function is to control the operation of the electric motor by regulating the power supplied from the battery.\nThe MCU receives input signals from the throttle pedal, sensors, and Battery Management System (BMS). Based on these signals, it controls motor speed, torque, acceleration, and direction of rotation.\nThe controller uses power electronic devices such as MOSFETs or IGBTs along with PWM (Pulse Width Modulation) techniques to provide efficient motor control. It also protects the motor and battery from faults such as overcurrent, overheating, and short circuits.\nIn simple terms, the MCU acts as the “brain” of the electric drivetrain and ensures smooth, safe, and efficient vehicle performance.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 2",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-003",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Differentiate between AC Motor and BLDC Motor used in EVs.",
+      "answer": "Parameters | AC Motor | BLDC Motor\nFull Form | Alternating Current Motor | Brushless DC Motor\nPower Supply | Operates on AC supply | Operates on DC supply\nEfficiency | High at high speed | High at low and medium speed\nMaintenance | Low maintenance | Very low maintenance\nSpeed Control | More complex | Easier control\nCost | Higher cost | Lower cost\nApplications | Electric cars and buses | E-bikes and scooters\nNoise Level | Moderate | Low\nBoth motors are widely used in EV applications due to their high efficiency and reliability.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 3",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-004",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the working principle of regenerative braking.",
+      "answer": "Regenerative braking is a technology used in electric vehicles to recover energy during braking. In this system, the electric motor works as a generator when the driver applies brakes.\nDuring braking, the kinetic energy of the moving vehicle is converted into electrical energy. This generated electrical energy is sent back to the battery for charging.\nRegenerative braking improves overall vehicle efficiency, increases driving range, reduces energy loss, and minimizes wear on mechanical brake components.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 4",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-005",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is CAN Protocol? Why is it important in EV communication systems?",
+      "answer": "CAN (Controller Area Network) Protocol is a serial communication protocol used for communication between different electronic devices in a vehicle.\nIn EVs, components such as the Battery Management System (BMS), Motor Controller, sensors, telematics unit, and dashboard communicate with each other using the CAN network.\nThe CAN protocol is important because it:\n• Provides reliable communication\n• Supports real-time data transfer\n• Reduces wiring complexity\n• Improves system efficiency\n• Helps in fault diagnosis and monitoring\nDue to its high speed and reliability, CAN protocol is widely used in modern electric vehicles.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 5",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-006",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Describe the working of the throttle input in an electric vehicle.",
+      "answer": "The throttle input system in an electric vehicle is used to control vehicle acceleration and motor speed.\nWhen the driver presses the accelerator pedal, the throttle position sensor or Hall-effect sensor detects the pedal position and converts it into an electrical signal.\nThis signal is sent to the Motor Controller Unit (MCU), which regulates the voltage and current supplied to the motor according to the acceleration demand.\nAs the throttle position increases, the controller supplies more power to the motor, resulting in higher speed and torque.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 6",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-007",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the major components of an EV powertrain?",
+      "answer": "The EV powertrain consists of several important components that work together to drive the vehicle efficiently.\nMajor components include:\n• Battery Pack – Stores electrical energy\n• Battery Management System (BMS) – Monitors and protects the battery\n• Motor Controller – Controls motor operation\n• Electric Motor – Converts electrical energy into mechanical energy\n• DC-DC Converter – Converts high voltage to low voltage\n• Transmission System – Transfers power to wheels\n• On-board Charger – Charges the battery from external supply\nThese components together ensure smooth and efficient vehicle operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 7",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-008",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the function of a Battery Management System (BMS).",
+      "answer": "The Battery Management System (BMS) is responsible for monitoring, controlling, and protecting the battery pack in an electric vehicle.\nIts major functions include:\n• Monitoring battery voltage and current\n• Measuring battery temperature\n• Calculating State of Charge (SOC)\n• Calculating State of Health (SOH)\n• Preventing overcharging and deep discharge\n• Cell balancing\n• Providing safety protection\nThe BMS improves battery performance, safety, and lifespan.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 8",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-009",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How does the controller regulate motor speed and torque?",
+      "answer": "The motor controller regulates speed and torque by controlling the electrical power supplied to the motor.\nThe controller receives signals from:\n• Throttle sensor\n• Motor sensors\n• Battery Management System (BMS)\nUsing PWM (Pulse Width Modulation), the controller adjusts voltage and current supplied to the motor.\n• Higher current increases torque\n• Higher voltage increases motor speed\nThis allows smooth acceleration, speed control, and efficient motor operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 9",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-010",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the importance of telematics in fleet management?",
+      "answer": "Telematics plays an important role in EV fleet management by providing real-time vehicle monitoring and data analysis.\nIt helps in:\n• Vehicle tracking using GPS\n• Monitoring battery health\n• Route optimization\n• Predictive maintenance\n• Driver behaviour analysis\n• Energy consumption monitoring\n• Remote diagnostics\nTelematics improves fleet efficiency, reduces operational costs, increases safety, and minimizes vehicle downtime.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 10",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-011",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the purpose of the brake cut-off feature in EVs.",
+      "answer": "The brake cut-off feature is a safety mechanism used in electric vehicles. When the brake lever or pedal is applied, the brake switch sends a signal to the motor controller to stop motor power immediately.\nThis prevents simultaneous acceleration and braking, improves safety, reduces energy loss, and protects the motor and controller from damage.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 11",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-012",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How does an ammeter help in analysing EV performance?",
+      "answer": "An ammeter is used to measure the current flowing in an EV circuit. It helps engineering students analyse:\n• Battery discharge rate\n• Motor power consumption\n• Energy efficiency\n• Load conditions\nHigher current indicates higher power consumption, while stable current indicates efficient operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 12",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-013",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Why is voltage monitoring important in EV systems?",
+      "answer": "Voltage monitoring is important because it helps maintain safe and efficient battery operation. It prevents:\n• Over-voltage conditions\n• Under-voltage conditions\n• Battery damage\n• System failure\nVoltage monitoring also helps in battery health analysis and improves vehicle reliability.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 13",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-014",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the difference between analog and digital sensors in EVs.",
+      "answer": "Analog Sensors | Digital Sensors\nProvide continuous output signals | Provide discrete binary signals\nMore sensitive to electrical noise | More accurate and reliable\nSimple design | Better communication with controllers\nLower cost | Faster data processing\nAnalog sensors are mainly used for temperature and pressure measurements, while digital sensors are used in smart monitoring systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 14",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-015",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the advantages of IoT integration in electric vehicles?",
+      "answer": "IoT integration improves EV performance and monitoring through internet connectivity.\nAdvantages include:\n• Real-time vehicle monitoring\n• Remote diagnostics\n• GPS tracking\n• Predictive maintenance\n• Data logging and analysis\n• Improved fleet management\n• Better user experience\nIoT helps make EV systems smarter and more efficient.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 15",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-016",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the working of indicators and hazard lights using relay circuits.",
+      "answer": "Indicators and hazard lights operate using relay or flasher circuits. When the switch is activated, the relay repeatedly opens and closes the circuit at fixed intervals.\nThis ON-OFF switching causes the indicator lamps to blink continuously. Hazard lights activate all indicators simultaneously for emergency warning.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 16",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-017",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the function of DC-DC converters in EVs?",
+      "answer": "A DC-DC converter converts high-voltage DC power from the traction battery into low-voltage DC power required for accessories such as:\n• Headlights\n• Horn\n• Dashboard\n• Indicators\n• Control systems\nIt ensures proper power distribution within the EV system.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 17",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-018",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How can this workbench be used for fault diagnosis training?",
+      "answer": "The EV workbench allows students to simulate and analyse faults in:\n• Wiring systems\n• Sensors\n• Controllers\n• CAN communication\n• Battery systems\nStudents can identify faults using measuring instruments and diagnostic tools, improving practical troubleshooting skills.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 18",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-019",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the common faults in motor controllers?",
+      "answer": "Common motor controller faults include:\n• Overheating\n• MOSFET or IGBT failure\n• Overcurrent faults\n• Short circuits\n• Sensor failure\n• Communication errors\n• Loose wiring connections\nThese faults affect motor performance and vehicle operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 19",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-020",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain thermal management in electric vehicles.",
+      "answer": "Thermal management controls the temperature of EV components such as:\n• Battery pack\n• Motor\n• Controller\n• Power electronics\nCooling systems using air or liquid coolant maintain safe operating temperature and improve efficiency, safety, and battery life.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 20",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-021",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is torque control and speed control in EV motors?",
+      "answer": "Torque control regulates the rotational force produced by the motor during acceleration and load conditions.\nSpeed control regulates the motor RPM according to vehicle requirements.\nBoth controls are managed by the motor controller to ensure smooth vehicle operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 21",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-022",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain open-loop and closed-loop control systems in EVs.",
+      "answer": "Open-Loop Control System | Closed-Loop Control System\nNo feedback mechanism | Uses feedback sensors\nLower accuracy | High accuracy\nSimple design | More complex design\nLower cost | Better performance\nClosed-loop systems are commonly used in EVs because they provide precise motor control.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 22",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-023",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are Hall sensors and how are they used in EV motors?",
+      "answer": "Hall sensors are magnetic field sensors used to detect rotor position in electric motors.\nIn EV motors, Hall sensors provide position feedback to the motor controller for proper commutation, speed control, and smooth motor operation.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 23",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-024",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the working of a throttle pedal sensor.",
+      "answer": "The throttle pedal sensor detects accelerator pedal movement and converts it into electrical signals.\nThese signals are sent to the motor controller, which regulates motor speed and torque according to the driver’s acceleration demand.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 24",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-025",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the significance of insulation in EV wiring systems?",
+      "answer": "Insulation protects EV wiring systems from:\n• Electric shock\n• Short circuits\n• Leakage current\n• Fire hazards\nProper insulation is very important because EVs operate at high voltages.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 25",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-026",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the communication flow between BMS and motor controller.",
+      "answer": "The Battery Management System (BMS) continuously monitors battery parameters such as:\n• Voltage\n• Current\n• Temperature\n• SOC and SOH\nThis data is transmitted to the motor controller through CAN communication. The controller adjusts motor operation according to battery condition and safety limits.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 26",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-027",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the safety precautions while testing EV systems?",
+      "answer": "Important safety precautions include:\n• Wear insulated gloves and shoes\n• Use insulated tools\n• Disconnect power before servicing\n• Avoid short circuits\n• Check voltage before touching components\n• Follow grounding procedures\n• Use proper PPE equipment\nThese precautions reduce the risk of electric shock and accidents.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 27",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-028",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the importance of grounding in EV workbenches.",
+      "answer": "Grounding provides a safe path for fault current and protects users from electric shock.\nIt also protects electrical equipment from voltage surges and improves system safety during testing.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 28",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-029",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How does a telematics system track vehicle performance?",
+      "answer": "The telematics system collects data from sensors and ECUs related to:\n• Vehicle speed\n• Battery condition\n• Energy consumption\n• GPS location\n• Driving patterns\nThis data is transmitted to cloud servers for monitoring and analysis.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 29",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-030",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the purpose of real-time data monitoring in EVs?",
+      "answer": "Real-time monitoring helps:\n• Detect faults instantly\n• Improve vehicle safety\n• Monitor battery health\n• Analyse energy consumption\n• Support predictive maintenance\n• It improves overall EV performance and reliability\n• all 50 questions",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 30",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-031",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the role of firmware in EV controllers.",
+      "answer": "Firmware is embedded software programmed inside EV controllers. It controls the operation of hardware components such as motor controllers and Battery Management Systems (BMS).\nFirmware manages:\n• Motor control algorithms\n• Battery protection\n• Sensor communication\n• CAN communication\n• Safety functions\nIt ensures smooth and efficient operation of EV systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 31",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-032",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the challenges in EV charging infrastructure?",
+      "answer": "Major challenges in EV charging infrastructure include:\n• Limited charging stations\n• Long charging time\n• High installation cost\n• Power grid management issues\n• Lack of standardization\n• Availability in rural areas\nImproving charging infrastructure is important for large-scale EV adoption.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 32",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-033",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Differentiate between slow charging and fast charging.",
+      "answer": "Slow Charging | Fast Charging\nUses low charging current | Uses high charging current\nLonger charging time | Short charging time\nSuitable for home charging | Suitable for commercial charging stations\nLess battery heating | More battery heating\nLower installation cost | Higher installation cost",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 33",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-034",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the working principle of lithium-ion batteries.",
+      "answer": "Lithium-ion batteries store and release electrical energy through electrochemical reactions.\nDuring charging:\nLithium ions move from the cathode to the anode.\nDuring discharging:\nLithium ions move from the anode to the cathode.\nThis movement of ions produces electrical energy used to power the EV.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 34",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-035",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are SOC and SOH in battery technology?",
+      "answer": "SOC (State of Charge): Indicates the remaining battery charge percentage.\nSOH (State of Health): Indicates the overall condition and performance capability of the battery compared to a new battery.\nThese parameters help monitor battery performance and lifespan.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 35",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-036",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the effect of overcharging and deep discharge on batteries.",
+      "answer": "Overcharging causes:\n• Overheating\n• Battery swelling\n• Reduced battery life\n• Fire risk\nDeep discharge causes:\n• Capacity reduction\n• Permanent battery damage\n• Reduced battery efficiency\nBoth conditions negatively affect lithium-ion battery performance.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 36",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-037",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is PWM control in motor controllers?",
+      "answer": "PWM (Pulse Width Modulation) is a technique used to control motor speed by varying the width of voltage pulses supplied to the motor.\n• Wider pulses increase motor speed\n• Narrow pulses decrease motor speed\nPWM improves motor efficiency and provides smooth speed control.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 37",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-038",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the use of relays and contactors in EV systems.",
+      "answer": "Relays and contactors are electrically operated switches used in EV systems for controlling high-current circuits.\nFunctions include:\n• Battery connection and disconnection\n• Motor power switching\n• Charging circuit control\n• Safety isolation\nContactors are mainly used for high-power applications in EVs.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 38",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-039",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How can students perform efficiency testing using this workbench?",
+      "answer": "Students can perform efficiency testing by measuring:\n• Input voltage\n• Input current\n• Output power\n• Motor speed and torque\nEfficiency is calculated using:\n• η=Output PowerInput Power×100\\eta = \\frac{\\text{Output Power}}{\\text{Input Power}} \\times 100η=Input PowerOutput Power​×100\nThis practical testing helps students understand EV system performance.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 39",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-040",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain how telematics improves predictive maintenance in EVs.",
+      "answer": "Telematics systems continuously monitor vehicle parameters such as:\n• Battery temperature\n• Motor condition\n• Fault codes\n• Energy consumption\nThe collected data is analysed to predict failures before they occur. This reduces downtime, maintenance cost, and unexpected breakdowns.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 40",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-041",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the advantages of electric vehicles over ICE vehicles?",
+      "answer": "Advantages of EVs over Internal Combustion Engine (ICE) vehicles include:\n• Zero tailpipe emissions\n• Lower maintenance cost\n• Higher efficiency\n• Quiet operation\n• Lower running cost\n• Better energy utilization\n• Reduced dependence on fossil fuels",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 41",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-042",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the role of embedded systems in EV technology.",
+      "answer": "Embedded systems are microcontroller-based systems used to control various EV operations.\nApplications include:\n• Motor control\n• Battery management\n• Vehicle diagnostics\n• Sensor interfacing\n• Telematics systems\n• Safety systems\nEmbedded systems improve automation and system efficiency.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 42",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-043",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the different types of EV charging standards?",
+      "answer": "Common EV charging standards include:\n• CCS (Combined Charging System)\n• CHAdeMO\n• Type 1 Charger\n• Type 2 Charger\n• GB/T Standard\n• Tesla Supercharger\nThese standards define charging connectors, voltage levels, and communication protocols.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 43",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-044",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How does data logging help in EV analysis?",
+      "answer": "Data logging stores important operational data such as:\n• Voltage\n• Current\n• Temperature\n• Motor speed\n• Fault records\nThis data helps engineers analyse vehicle performance, detect faults, and improve system efficiency.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 44",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-045",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain cybersecurity challenges in connected EV systems.",
+      "answer": "Connected EVs face cybersecurity risks such as:\n• Hacking attacks\n• Unauthorized access\n• Data theft\n• Malware attacks\n• Communication interception\nStrong encryption, authentication, and secure communication protocols are required to protect EV systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 45",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-046",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What is the role of GPS integration in telematics systems?",
+      "answer": "GPS integration helps in:\n• Vehicle tracking\n• Route monitoring\n• Navigation\n• Fleet management\n• Theft protection\nIt provides real-time vehicle location information through telematics systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 46",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-047",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the importance of sensor calibration in EVs.",
+      "answer": "Sensor calibration ensures accurate measurement of:\n• Voltage\n• Current\n• Temperature\n• Speed\n• Position\nProper calibration improves system accuracy, efficiency, and reliability.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 47",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-048",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "What are the environmental benefits of EV technology?",
+      "answer": "Environmental benefits of EV technology include:\n• Reduced greenhouse gas emissions\n• Lower air pollution\n• Reduced noise pollution\n• Lower fossil fuel consumption\n• Improved environmental sustainability\nEVs support clean and green transportation systems.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 48",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-049",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "Explain the working of smart diagnostics in EVs.",
+      "answer": "Smart diagnostics systems use sensors, controllers, and software algorithms to detect faults automatically.\nThe system continuously monitors vehicle parameters and generates alerts or fault codes whenever abnormal conditions are detected.\nThis helps in quick troubleshooting and predictive maintenance.",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 49",
+        "page": "-"
+      },
+      "evidence_quote": ""
+    },
+    {
+      "id": "eng-rdt-050",
+      "topic": "EV RAGDRIVE Telematics Workbench",
+      "difficulty": "medium",
+      "question": "How can AI and IoT improve future EV telematics systems?",
+      "answer": "AI and IoT technologies can improve EV telematics systems by enabling:\n• Predictive maintenance\n• Smart battery management\n• Autonomous driving features\n• Real-time vehicle monitoring\n• Smart charging systems\n• Traffic and route optimization\n• Remote diagnostics and updates\n• These technologies will make future EVs smarter, safer, and more efficient",
+      "source": {
+        "book": "EV RAGDRIVE Intelligent Telematics Engineering — Q&A Set (1-50)",
+        "chapter": "Engineering Q&A",
+        "section": "Question No. 50",
+        "page": "-"
+      },
+      "evidence_quote": ""
     }
   ]
 }

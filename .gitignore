@@ -8,6 +8,8 @@ env/
 
 # --- Logs / runtime ---
 *.log
+# Per-device voice/STT/TTS preference, written at runtime (Config tab).
+voice_settings.json
 
 # --- Models: downloaded by setup_pi.sh, NOT committed --------------------
 # The embedder (~128 MB) exceeds GitHub's 100 MB per-file limit, and the

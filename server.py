@@ -253,8 +253,8 @@ def _apply_outputs():
       * headlight / brake -> standalone, driven by their own intent.
       * horn -> not steady here; a click fires a beep pattern (see drive()).
       * reverse -> driven by intent (the 5 s timer manages it).
-      * all_lamp mode -> forces head lamp + tail lamp (brake) ON, and turns
-        BOTH indicators on.
+      * all_lamp mode -> forces head lamp ON and turns BOTH indicators on.
+        Brake is NOT touched by all-lamp — it stays its own momentary control.
       * hazard mode  -> both indicators on.
       * otherwise    -> left/right indicators follow their own toggle.
 
@@ -272,9 +272,10 @@ def _apply_outputs():
 
     all_lamp = on["all_lamp"]
 
-    # Standalone lamps. All-lamp mode forces head + tail (brake) lamps on.
+    # Standalone lamps. All-lamp mode forces the head lamp on; brake is left
+    # alone (it follows only its own momentary intent).
     hardware.set("headlight", on["headlight"] or all_lamp)
-    hardware.set("brake",     on["brake"]     or all_lamp)
+    hardware.set("brake",     on["brake"])
     # Reverse/forward: driven by its intent, which the 5 s timer manages.
     hardware.set("reverse",   on["reverse"])
 
@@ -310,6 +311,42 @@ _VALID_STT = ("off", "vosk", "google")
 _VALID_TTS = ("off", "browser", "pyttsx3", "gtts")
 
 
+def _apply_tts_rate(rate: int) -> int:
+    """Clamp the offline speech rate and push it to the pyttsx3 backend."""
+    rate = max(80, min(300, int(rate)))
+    astate.tts_rate = rate
+    be = astate.tts_backends.get("pyttsx3")
+    if be is not None:
+        be.rate = rate
+    return rate
+
+
+def _save_voice_settings() -> None:
+    """Persist the current STT/TTS/rate choice so it survives a restart."""
+    try:
+        with open(config.VOICE_SETTINGS_JSON, "w", encoding="utf-8") as f:
+            json.dump({"stt": astate.stt_mode, "tts": astate.tts_mode,
+                       "tts_rate": astate.tts_rate}, f, indent=2)
+    except OSError as e:
+        log.warning("could not persist voice settings: %s", e)
+
+
+def _load_voice_settings() -> None:
+    """Restore the saved STT/TTS/rate over the config defaults. Silent no-op if
+    the file is missing or invalid (fresh install -> online defaults)."""
+    try:
+        with open(config.VOICE_SETTINGS_JSON, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return
+    if data.get("stt") in _VALID_STT:
+        astate.stt_mode = data["stt"]
+    if data.get("tts") in _VALID_TTS:
+        astate.tts_mode = data["tts"]
+    if isinstance(data.get("tts_rate"), int):
+        astate.tts_rate = max(80, min(300, data["tts_rate"]))
+
+
 def _warmup():
     try:
         astate.rag = RAGEngine()
@@ -319,8 +356,11 @@ def _warmup():
         return
     astate.stt_backends = voice.build_stt_backends()
     astate.tts_backends = voice.build_tts_backends()
+    _load_voice_settings()           # restore the user's saved choice (survives reboot)
+    _apply_tts_rate(astate.tts_rate)  # push restored rate to the pyttsx3 backend
     astate.ready = True
-    log.info("warmup complete")
+    log.info("warmup complete (stt=%s tts=%s rate=%s)",
+             astate.stt_mode, astate.tts_mode, astate.tts_rate)
 
 
 @asynccontextmanager
@@ -628,11 +668,8 @@ async def post_voice_config(body: VoiceConfigBody):
             raise HTTPException(400, f"invalid tts '{body.tts}'")
         astate.tts_mode = body.tts
     if body.tts_rate is not None:
-        rate = max(80, min(300, int(body.tts_rate)))
-        astate.tts_rate = rate
-        be = astate.tts_backends.get("pyttsx3")
-        if be is not None:
-            be.rate = rate
+        _apply_tts_rate(body.tts_rate)
+    _save_voice_settings()    # remember the choice across restarts/reboots
     return {"stt": astate.stt_mode, "tts": astate.tts_mode, "tts_rate": astate.tts_rate}
 
 

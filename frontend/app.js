@@ -35,9 +35,9 @@ const state = {
   tab: 'dashboard',          // 'dashboard' | 'bot' | 'config'
   recording: false,
   busy: false,
-  voice: {                   // mirrors /api/voice/config
-    stt: 'vosk',
-    tts: 'browser',
+  voice: {                   // mirrors /api/voice/config (server is source of truth)
+    stt: 'google',           // online default; overwritten by loadVoiceConfig()
+    tts: 'gtts',             // online default; overwritten by loadVoiceConfig()
     sttOptions: ['off', 'vosk', 'google'],
     ttsOptions: ['off', 'browser', 'pyttsx3', 'gtts'],
     sttBackends: {},
@@ -151,9 +151,10 @@ function applyState(snap) {
   const hl = $('#iconHeadlight');
   if (hl) hl.classList.toggle('on', !!state.channels.headlight || allLamp);
 
-  // Brake tell-tale: brake, or all-lamp mode. (Parking brake has its own
-  // tell-tale via setIcon('parking_brake') — kept separate.)
-  const brakeOn = !!state.channels.brake || allLamp;
+  // Brake tell-tale: follows its own momentary control only — all-lamp mode
+  // does NOT light it (brake is excluded from all-lamp). (Parking brake has
+  // its own tell-tale via setIcon('parking_brake') — kept separate.)
+  const brakeOn = !!state.channels.brake;
   const brakeEl = $('#iconBrake');
   if (brakeEl) brakeEl.classList.toggle('on', brakeOn);
 

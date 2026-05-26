@@ -94,11 +94,16 @@ RAG_SYSTEM_PROMPT = (
 
 # --- Voice (Tkinter UI radio buttons select between these) ----------------
 
-DEFAULT_STT = "vosk"          # one of: "off", "vosk", "google"
-# Browser speechSynthesis usually has NO offline voices on Chromium/Linux,
-# so on the Pi default to server-side pyttsx3 (espeak-ng); browser on Windows.
-# Either way it's switchable live from the Config tab.
-DEFAULT_TTS = "browser" if SIM_MODE else "pyttsx3"   # "off"|"browser"|"pyttsx3"|"gtts"
+# Defaults are the ONLINE backends (Google STT + gTTS) — best quality when the
+# device has internet. The user can switch to the offline/disabled options
+# (vosk / pyttsx3 / off) live from the Config tab, and that choice is PERSISTED
+# to VOICE_SETTINGS_JSON so it survives a restart/reboot (see server.py).
+DEFAULT_STT = "google"        # one of: "off", "vosk", "google"
+DEFAULT_TTS = "gtts"          # "off" | "browser" | "pyttsx3" | "gtts"
+
+# Where the user's chosen STT/TTS/rate is saved so it outlives a restart. Kept
+# out of git (per-device runtime state); absent on a fresh install -> defaults.
+VOICE_SETTINGS_JSON = ROOT / "voice_settings.json"
 
 # Offline (pyttsx3 / espeak) speech rate in words-per-minute. espeak's own
 # default (~200) sounds fast; lower = slower/clearer. Adjustable on the Config tab.

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=INSTALL EV Lab Dashboard (first time)
+Comment=Run ONCE on a fresh Pi to install everything. Takes 20-40 min, needs internet.
+Exec=bash -c 'bash "$HOME/EV_Chatbot_Pi5/install_first_time.sh"'
+Icon=system-software-install
+Terminal=true
+Categories=Education;
+StartupNotify=true

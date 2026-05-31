@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=EV Lab Dashboard
+Comment=Start the EV Lab kiosk (fullscreen). Exit with Ctrl+Alt+X.
+Exec=/home/pi/EV_Chatbot_Pi5/launch_dashboard.sh
+Path=/home/pi/EV_Chatbot_Pi5
+Icon=/home/pi/EV_Chatbot_Pi5/frontend/logo.png
+Terminal=false
+Categories=Education;
+StartupNotify=false

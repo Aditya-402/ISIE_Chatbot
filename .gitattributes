@@ -6,6 +6,9 @@
 # Shell scripts MUST be LF (CRLF breaks the #! interpreter line on Linux).
 *.sh text eol=lf
 
+# Desktop launcher icons run on the Pi too — keep them LF.
+*.desktop text eol=lf
+
 # Windows batch file stays CRLF.
 *.bat text eol=crlf
 
